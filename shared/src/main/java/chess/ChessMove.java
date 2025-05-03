@@ -4,7 +4,7 @@ package chess;
  * Represents moving a chess piece on a chessboard
  * <p>
  * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
+ *  the signature of the existing methods.
  */
 public class ChessMove {
 
