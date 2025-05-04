@@ -34,7 +34,12 @@ class RookMoves implements MoveCalculator {
 
 class BishopMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        ChessMove[] possibleMoves = {};
+        int currentRow = myPosition.getRow();
+        int currentCol = myPosition.getColumn();
 
+
+        return List.of(possibleMoves);
     }
 }
 
