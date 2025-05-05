@@ -52,8 +52,6 @@ public class ChessMove {
             } else {
                 return 3;
             }
-        } else if(row == 0 || row > 7 || col == 0 || col > 7) {
-            return 4;
         }
         return 1;
     }

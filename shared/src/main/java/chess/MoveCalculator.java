@@ -39,14 +39,18 @@ class BishopMoves implements MoveCalculator {
         for(int i = 0; i < 4; i++) {
             for(int j = 0; j < 7; j++) {
                 ChessPosition endPostition = offSet.applyOffSet(myPosition, offSet.bishopOffSets[i]);
-                ChessMove validMove = new ChessMove(endPostition, myPosition, null);
-                int validationCode = validMove.checkPosition(board.getBoard());
-                if(validationCode == 1) {
-                    possibleMoves.add(validMove);
-                } else {
-                    if(validationCode == 2) {
+                if(endPostition.getRow() != -1 && endPostition.getColumn() != -1) {
+                    ChessMove validMove = new ChessMove(endPostition, myPosition, null);
+                    int validationCode = validMove.checkPosition(board.getBoard());
+                    if (validationCode == 1) {
                         possibleMoves.add(validMove);
+                    } else {
+                        if (validationCode == 2) {
+                            possibleMoves.add(validMove);
+                        }
+                        break;
                     }
+                } else {
                     break;
                 }
             }
@@ -71,8 +75,13 @@ class OffSet {
     int[][] queenOffSets = {{1, -1}, {-1, -1}, {-1, 1}, {1, 1}, {0, -1}, {-1, 0}, {0, 1}, {1, 0}};
 
     public ChessPosition applyOffSet(ChessPosition start, int[] changes) {
-        int endRow = start.getRow() + changes[0];
-        int endCol = start.getColumn() + changes[1];
+        int endRow = -1;
+        int endCol = -1;
+
+        if(0 <= start.getRow() && 7 >= start.getRow() && start.getColumn() >= 0 && start.getColumn() <= 7 ) {
+            endRow = start.getRow() + changes[0];
+            endCol = start.getColumn() +  changes[1];
+        }
 
         return new ChessPosition(endRow, endCol);
     }
