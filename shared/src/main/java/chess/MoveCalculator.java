@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public interface MoveCalculator {
@@ -33,62 +34,46 @@ class RookMoves implements MoveCalculator {
 
 class BishopMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        Collection<ChessMove> possibleMoves = new Collection<ChessMove>;
-        int currentRow = myPosition.getRow();
-        int currentCol = myPosition.getColumn();
-        ChessPosition startingPosition = new ChessPosition(currentRow, currentCol);
-        int counter = 0;
-        while(currentRow != 7 & currentCol != 0) {
-            currentRow += 1;
-            currentCol -=1;
-            ChessPosition endingPosition = new ChessPosition(currentRow, currentCol);
-            ChessMove move = new ChessMove(startingPosition, endingPosition, null);
-            possibleMoves[0][counter] = move;
-            counter++;
-        }
-        currentRow = myPosition.getRow();
-        currentCol = myPosition.getColumn();
-
-        counter = 0;
-        while(currentRow != 0 & currentCol != 0) {
-            currentRow -= 1;
-            currentCol -=1;
-            ChessPosition endingPosition = new ChessPosition(currentRow, currentCol);
-            ChessMove move = new ChessMove(startingPosition, endingPosition, null);
-            possibleMoves[1][counter] = move;
-            counter++;
-        }
-        currentRow = myPosition.getRow();
-        currentCol = myPosition.getColumn();
-
-        counter = 0;
-        while(currentRow != 7 & currentCol != 0) {
-            currentRow -= 1;
-            currentCol +=1;
-            ChessPosition endingPosition = new ChessPosition(currentRow, currentCol);
-            ChessMove move = new ChessMove(startingPosition, endingPosition, null);
-            possibleMoves[2][counter] = move;
-            counter++;
-        }
-        currentRow = myPosition.getRow();
-        currentCol = myPosition.getColumn();
-
-        counter = 0;
-        while(currentRow != 7 & currentCol != 7) {
-            currentRow += 1;
-            currentCol +=1;
-            ChessPosition endingPosition = new ChessPosition(currentRow, currentCol);
-            ChessMove move = new ChessMove(startingPosition, endingPosition, null);
-            possibleMoves[3][counter] = move;
-            counter++;
+        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
+        OffSet offSet = new OffSet();
+        for(int i = 0; i < 4; i++) {
+            for(int j = 0; j < 7; j++) {
+                ChessPosition endPostition = offSet.applyOffSet(myPosition, offSet.bishopOffSets[i]);
+                ChessMove validMove = new ChessMove(endPostition, myPosition, null);
+                int validationCode = validMove.checkPosition(board.getBoard());
+                if(validationCode == 1) {
+                    possibleMoves.add(validMove);
+                } else {
+                    if(validationCode == 2) {
+                        possibleMoves.add(validMove);
+                    }
+                    break;
+                }
+            }
         }
         
         return possibleMoves;
     }
+
 }
 
 class PawnMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 
+    }
+}
+
+
+class OffSet {
+    int[][] bishopOffSets = {{1, -1}, {-1, -1}, {-1, 1}, {1, 1}};
+    int[][] knightOffSets = {{2, -1}, { 1, -2}, { -1, -2}, {-2, -1}, {-2, 1}, {-1, 2}, {1, 2}, {2, 1}};
+    int[][] rookOffSets = {{0, -1}, {-1, 0}, {0, 1}, {1, 0}};
+    int[][] queenOffSets = {{1, -1}, {-1, -1}, {-1, 1}, {1, 1}, {0, -1}, {-1, 0}, {0, 1}, {1, 0}};
+
+    public ChessPosition applyOffSet(ChessPosition start, int[] changes) {
+        int endRow = start.getRow() + changes[0];
+        int endCol = start.getColumn() + changes[1];
+
+        return new ChessPosition(endRow, endCol);
     }
 }

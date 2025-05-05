@@ -42,4 +42,19 @@ public class ChessMove {
     public ChessPiece.PieceType getPromotionPiece() {
         return promotionPiece;
     }
+
+    public int checkPosition(ChessPiece[][] board) {
+        int row = this.endPosition.getRow();
+        int col = this.endPosition.getColumn();
+        if(board[row][col] != null) {
+            if(board[row][col].getTeamColor() != board[startPosition.getRow()][startPosition.getColumn()].getTeamColor()) {
+                return 2;
+            } else {
+                return 3;
+            }
+        } else if(row == 0 || row > 7 || col == 0 || col > 7) {
+            return 4;
+        }
+        return 1;
+    }
 }
