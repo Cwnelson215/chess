@@ -15,7 +15,7 @@ class KingMoves implements MoveCalculator {
         for(int i = 0; i < 8; i++) {
             ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.kingOffSets[i]);
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
@@ -44,7 +44,7 @@ class QueenMoves implements MoveCalculator {
         for(int i = 0; i < 8; i++) {
             ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.queenOffSets[i]);
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
@@ -72,7 +72,7 @@ class KnightMoves implements MoveCalculator {
         OffSet offSet = new OffSet();
         ChessPosition carrier = myPosition;
         for(int i = 0; i < 7; i++) {
-            ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+            ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.knightOffSets[i]);
             carrier = endPosition;
             if (endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                 ChessMove validMove = new ChessMove(myPosition, endPosition, null);
@@ -100,7 +100,7 @@ class RookMoves implements MoveCalculator {
         for(int i = 0; i < 4; i++) {
             ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.rookOffSets[i]);
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
