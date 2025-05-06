@@ -145,7 +145,95 @@ class BishopMoves implements MoveCalculator {
 
 class PawnMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(4);
+        OffSet offSet = new OffSet();
+        ChessPiece.PieceType promotionPiece = null;
+        int diagonals = checkDiagonals(board, myPosition);
+        ChessPosition diagonalLeft = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+        ChessPosition diagoanlRight = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+        if(board.getBoard()[myPosition.getRow()][myPosition.getColumn()].checkIfMoved()) {
+            ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1 , myPosition.getColumn());
+            if(endPosition.getRow() == 0) {
+                promotionPiece = ChessPiece.PieceType.QUEEN;
+            }
+            ChessMove move = new ChessMove(endPosition, myPosition, promotionPiece);
+            int validationCode = move.checkPosition(board.getBoard());
+            if(validationCode == 1) {
+                possibleMoves.add(move);
+            }
 
+            if(diagonals == 1) {
+                ChessMove DL = new ChessMove(diagonalLeft, myPosition, null);
+                possibleMoves.add(DL);
+            } else if(diagonals == 2) {
+                ChessMove DR = new ChessMove(diagoanlRight, myPosition, null);
+                possibleMoves.add(DR);
+            } else if(diagonals == 3) {
+                ChessMove move1 = new ChessMove(diagonalLeft, myPosition, null);
+                ChessMove move2 = new ChessMove(diagoanlRight, myPosition, null);
+                possibleMoves.add(move1);
+                possibleMoves.add(move2);
+            }
+        } else {
+            for(int i = 0; i < 2; i++) {
+                ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
+                ChessMove move = new ChessMove(endPosition, myPosition, null);
+                int validationCode = move.checkPosition(board.getBoard());
+                if(validationCode == 1) {
+                    possibleMoves.add(move);
+                } else {
+                    break;
+                }
+            }
+            if(diagonals == 1) {
+                ChessMove move = new ChessMove(diagonalLeft, myPosition, null);
+                possibleMoves.add(move);
+            } else if(diagonals == 2) {
+                ChessMove move = new ChessMove(diagoanlRight, myPosition, null);
+                possibleMoves.add(move);
+            } else if(diagonals == 3) {
+                ChessMove move1 = new ChessMove(diagonalLeft, myPosition, null);
+                ChessMove move2 = new ChessMove(diagoanlRight, myPosition, null);
+                possibleMoves.add(move1);
+                possibleMoves.add(move2);
+            }
+        }
+
+        return possibleMoves;
+    }
+
+    public int checkDiagonals(ChessBoard board, ChessPosition myPosition) {
+        boolean enemyToLeft = false;
+        boolean enemyToRight = false;
+        ChessPiece[][] gameBoard = board.getBoard();
+        ChessPosition[] diagonals = {
+                new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() -1),
+                new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1)
+        };
+
+        for(int i = 0; i < 2; i++) {
+            if(gameBoard[diagonals[i].getRow()][diagonals[i].getColumn()] != null) {
+                if(gameBoard[diagonals[i].getRow()][diagonals[i].getColumn()].getTeamColor() != gameBoard[myPosition.getRow()][myPosition.getColumn()].getTeamColor()) {
+                    if (i == 0) {
+                        enemyToLeft = true;
+                    } else {
+                        enemyToRight = true;
+                    }
+                }
+            }
+        }
+
+        if(enemyToLeft) {
+            if(enemyToRight) {
+                return 3;
+            } else {
+                return 1;
+            }
+        } else if(enemyToRight) {
+            return 2;
+        }
+
+        return 0;
     }
 }
 
