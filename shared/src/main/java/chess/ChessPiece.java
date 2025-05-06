@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -20,6 +21,20 @@ public class ChessPiece {
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessPiece that = (ChessPiece) o;
+        return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type && Objects.equals(validMoves, that.validMoves);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pieceColor, type, hasMoved, validMoves);
     }
 
     /**
@@ -56,27 +71,21 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        MoveCalculator calculator = new MoveCalculator() {
-            @Override
-            public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-                Collection<ChessMove> moves = null;
-                if(type == PieceType.KING) {
-                    moves = new KingMoves().pieceMoves(board, myPosition);
-                } else if(type == PieceType.QUEEN) {
-                    moves = new QueenMoves().pieceMoves(board, myPosition);
-                } else if(type == PieceType.KNIGHT) {
-                    moves = new KnightMoves().pieceMoves(board, myPosition);
-                } else if(type == PieceType.ROOK) {
-                    moves = new RookMoves().pieceMoves(board, myPosition);
-                } else if(type == PieceType.BISHOP) {
-                    moves = new BishopMoves().pieceMoves(board, myPosition);
-                }  else if(type == PieceType.PAWN) {
-                    moves = new PawnMoves().pieceMoves(board, myPosition);
-                }
-                return moves;
-            }
-        };
-        return List.of();
+        Collection<ChessMove> moves = null;
+        if(type == PieceType.KING) {
+            moves = new KingMoves().pieceMoves(board, myPosition);
+        } else if(type == PieceType.QUEEN) {
+            moves = new QueenMoves().pieceMoves(board, myPosition);
+        } else if(type == PieceType.KNIGHT) {
+            moves = new KnightMoves().pieceMoves(board, myPosition);
+        } else if(type == PieceType.ROOK) {
+            moves = new RookMoves().pieceMoves(board, myPosition);
+        } else if(type == PieceType.BISHOP) {
+            moves = new BishopMoves().pieceMoves(board, myPosition);
+        }  else if(type == PieceType.PAWN) {
+            moves = new PawnMoves().pieceMoves(board, myPosition);
+        }
+        return moves;
     }
 
     public boolean checkIfMoved() {

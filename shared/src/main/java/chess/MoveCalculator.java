@@ -13,10 +13,12 @@ class KingMoves implements MoveCalculator {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
         OffSet offSet = new OffSet();
         for(int i = 0; i < 8; i++) {
+            ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.kingOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
-                    ChessMove validMove = new ChessMove(endPosition, myPosition, null);
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
                     int validationCode = validMove.checkPosition(board.getBoard());
                     if(validationCode == 1) {
                         possibleMoves.add(validMove);
@@ -40,10 +42,12 @@ class QueenMoves implements MoveCalculator {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
         OffSet offSet = new OffSet();
         for(int i = 0; i < 8; i++) {
+            ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.queenOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
-                    ChessMove validMove = new ChessMove(endPosition, myPosition, null);
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
                     int validationCode = validMove.checkPosition(board.getBoard());
                     if(validationCode == 1) {
                         possibleMoves.add(validMove);
@@ -66,10 +70,12 @@ class KnightMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(8);
         OffSet offSet = new OffSet();
-        for (int i = 0; i < 8; i++) {
-            ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.knightOffSets[i]);
+        ChessPosition carrier = myPosition;
+        for(int i = 0; i < 7; i++) {
+            ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+            carrier = endPosition;
             if (endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
-                ChessMove validMove = new ChessMove(endPosition, myPosition, null);
+                ChessMove validMove = new ChessMove(myPosition, endPosition, null);
                 int validationCode = validMove.checkPosition(board.getBoard());
                 if(validationCode == 1) {
                     possibleMoves.add(validMove);
@@ -92,10 +98,12 @@ class RookMoves implements MoveCalculator {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
         OffSet offSet = new OffSet();
         for(int i = 0; i < 4; i++) {
+            ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.rookOffSets[i]);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
-                    ChessMove validMove = new ChessMove(endPosition, myPosition, null);
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
                     int validationCode = validMove.checkPosition(board.getBoard());
                     if(validationCode == 1) {
                         possibleMoves.add(validMove);
@@ -119,10 +127,12 @@ class BishopMoves implements MoveCalculator {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
         OffSet offSet = new OffSet();
         for(int i = 0; i < 4; i++) {
+            ChessPosition carrier = myPosition;
             for(int j = 0; j < 7; j++) {
-                ChessPosition endPostition = offSet.applyOffSet(myPosition, offSet.bishopOffSets[i]);
-                if(endPostition.getRow() != -1 && endPostition.getColumn() != -1) {
-                    ChessMove validMove = new ChessMove(endPostition, myPosition, null);
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                carrier = endPosition;
+                if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
                     int validationCode = validMove.checkPosition(board.getBoard());
                     if (validationCode == 1) {
                         possibleMoves.add(validMove);
@@ -151,33 +161,33 @@ class PawnMoves implements MoveCalculator {
         int diagonals = checkDiagonals(board, myPosition);
         ChessPosition diagonalLeft = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
         ChessPosition diagoanlRight = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
-        if(board.getBoard()[myPosition.getRow()][myPosition.getColumn()].checkIfMoved()) {
+        if(board.getPiece(myPosition).checkIfMoved()) {
             ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1 , myPosition.getColumn());
             if(endPosition.getRow() == 0) {
                 promotionPiece = ChessPiece.PieceType.QUEEN;
             }
-            ChessMove move = new ChessMove(endPosition, myPosition, promotionPiece);
+            ChessMove move = new ChessMove(myPosition, endPosition, null);
             int validationCode = move.checkPosition(board.getBoard());
             if(validationCode == 1) {
                 possibleMoves.add(move);
             }
 
             if(diagonals == 1) {
-                ChessMove DL = new ChessMove(diagonalLeft, myPosition, null);
+                ChessMove DL = new ChessMove(myPosition, diagonalLeft, null);
                 possibleMoves.add(DL);
             } else if(diagonals == 2) {
-                ChessMove DR = new ChessMove(diagoanlRight, myPosition, null);
+                ChessMove DR = new ChessMove(myPosition,diagoanlRight,null);
                 possibleMoves.add(DR);
             } else if(diagonals == 3) {
-                ChessMove move1 = new ChessMove(diagonalLeft, myPosition, null);
-                ChessMove move2 = new ChessMove(diagoanlRight, myPosition, null);
+                ChessMove move1 = new ChessMove(myPosition, diagonalLeft,null);
+                ChessMove move2 = new ChessMove(myPosition, diagoanlRight,null);
                 possibleMoves.add(move1);
                 possibleMoves.add(move2);
             }
         } else {
             for(int i = 0; i < 2; i++) {
                 ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
-                ChessMove move = new ChessMove(endPosition, myPosition, null);
+                ChessMove move = new ChessMove(myPosition, endPosition, null);
                 int validationCode = move.checkPosition(board.getBoard());
                 if(validationCode == 1) {
                     possibleMoves.add(move);
@@ -186,14 +196,14 @@ class PawnMoves implements MoveCalculator {
                 }
             }
             if(diagonals == 1) {
-                ChessMove move = new ChessMove(diagonalLeft, myPosition, null);
+                ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
                 possibleMoves.add(move);
             } else if(diagonals == 2) {
-                ChessMove move = new ChessMove(diagoanlRight, myPosition, null);
+                ChessMove move = new ChessMove(myPosition, diagoanlRight,null);
                 possibleMoves.add(move);
             } else if(diagonals == 3) {
-                ChessMove move1 = new ChessMove(diagonalLeft, myPosition, null);
-                ChessMove move2 = new ChessMove(diagoanlRight, myPosition, null);
+                ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
+                ChessMove move2 = new ChessMove(myPosition, diagoanlRight,null);
                 possibleMoves.add(move1);
                 possibleMoves.add(move2);
             }
@@ -206,18 +216,26 @@ class PawnMoves implements MoveCalculator {
         boolean enemyToLeft = false;
         boolean enemyToRight = false;
         ChessPiece[][] gameBoard = board.getBoard();
-        ChessPosition[] diagonals = {
-                new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() -1),
-                new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1)
-        };
+        ChessPosition leftDiag = null;
+        ChessPosition rightDiag = null;
+
+        if(myPosition.getColumn() != 1) {
+            leftDiag = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+        }
+        if(myPosition.getColumn() != 8) {
+            rightDiag = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+        }
+        ChessPosition[] diagonals = {leftDiag, rightDiag};
 
         for(int i = 0; i < 2; i++) {
-            if(gameBoard[diagonals[i].getRow()][diagonals[i].getColumn()] != null) {
-                if(gameBoard[diagonals[i].getRow()][diagonals[i].getColumn()].getTeamColor() != gameBoard[myPosition.getRow()][myPosition.getColumn()].getTeamColor()) {
-                    if (i == 0) {
-                        enemyToLeft = true;
-                    } else {
-                        enemyToRight = true;
+            if(diagonals[i] != null) {
+                if(gameBoard[diagonals[i].getRow() - 1][diagonals[i].getColumn() - 1] != null) {
+                    if(board.getPiece(myPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                        if (i == 0) {
+                            enemyToLeft = true;
+                        } else {
+                            enemyToRight = true;
+                        }
                     }
                 }
             }
@@ -249,9 +267,9 @@ class OffSet {
         int endRow = -1;
         int endCol = -1;
 
-        if(0 <= start.getRow() && 7 >= start.getRow() && start.getColumn() >= 0 && start.getColumn() <= 7 ) {
+        if(1 <= start.getRow() + changes[0] && 8 >= start.getRow() + changes[0] && start.getColumn() + changes[1] >= 1 && start.getColumn() + changes[1] <= 8 ) {
             endRow = start.getRow() + changes[0];
-            endCol = start.getColumn() +  changes[1];
+            endCol = start.getColumn() + changes[1];
         }
 
         return new ChessPosition(endRow, endCol);
