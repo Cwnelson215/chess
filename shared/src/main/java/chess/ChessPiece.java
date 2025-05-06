@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a single chess piece
@@ -55,7 +56,27 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-
+        MoveCalculator calculator = new MoveCalculator() {
+            @Override
+            public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+                Collection<ChessMove> moves = null;
+                if(type == PieceType.KING) {
+                    moves = new KingMoves().pieceMoves(board, myPosition);
+                } else if(type == PieceType.QUEEN) {
+                    moves = new QueenMoves().pieceMoves(board, myPosition);
+                } else if(type == PieceType.KNIGHT) {
+                    moves = new KnightMoves().pieceMoves(board, myPosition);
+                } else if(type == PieceType.ROOK) {
+                    moves = new RookMoves().pieceMoves(board, myPosition);
+                } else if(type == PieceType.BISHOP) {
+                    moves = new BishopMoves().pieceMoves(board, myPosition);
+                }  else if(type == PieceType.PAWN) {
+                    moves = new PawnMoves().pieceMoves(board, myPosition);
+                }
+                return moves;
+            }
+        };
+        return List.of();
     }
 
     public boolean checkIfMoved() {
