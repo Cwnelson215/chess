@@ -45,11 +45,9 @@ public class ChessMove {
         return promotionPiece;
     }
 
-    public int checkPosition(ChessPiece[][] board) {
-        int row = this.endPosition.getRow() - 1;
-        int col = this.endPosition.getColumn() - 1;
-        if(board[row][col] != null) {
-            if(board[row][col].getTeamColor() != board[startPosition.getRow() - 1][startPosition.getColumn() - 1].getTeamColor()) {
+    public int checkPosition(ChessBoard board) {
+        if(board.getPiece(endPosition) != null) {
+            if(board.getPiece(endPosition).getTeamColor() != board.getPiece(startPosition).getTeamColor()) {
                 return 2;
             } else {
                 return 3;

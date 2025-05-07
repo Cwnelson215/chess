@@ -13,23 +13,16 @@ class KingMoves implements MoveCalculator {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
         OffSet offSet = new OffSet();
         for(int i = 0; i < 8; i++) {
-            ChessPosition carrier = myPosition;
-            for(int j = 0; j < 7; j++) {
-                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.kingOffSets[i]);
-                carrier = endPosition;
-                if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
-                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
-                    int validationCode = validMove.checkPosition(board.getBoard());
-                    if(validationCode == 1) {
-                        possibleMoves.add(validMove);
-                    } else {
-                        if(validationCode == 2) {
-                            possibleMoves.add(validMove);
-                        }
-                        break;
-                    }
+            ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.kingOffSets[i]);
+            if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                ChessMove validMove = new ChessMove(myPosition, endPosition, null);
+                int validationCode = validMove.checkPosition(board);
+                if(validationCode == 1) {
+                    possibleMoves.add(validMove);
                 } else {
-                    break;
+                    if(validationCode == 2) {
+                        possibleMoves.add(validMove);
+                    }
                 }
             }
         }
@@ -48,7 +41,7 @@ class QueenMoves implements MoveCalculator {
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
-                    int validationCode = validMove.checkPosition(board.getBoard());
+                    int validationCode = validMove.checkPosition(board);
                     if(validationCode == 1) {
                         possibleMoves.add(validMove);
                     } else {
@@ -70,23 +63,18 @@ class KnightMoves implements MoveCalculator {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(8);
         OffSet offSet = new OffSet();
-        ChessPosition carrier = myPosition;
-        for(int i = 0; i < 7; i++) {
-            ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.knightOffSets[i]);
-            carrier = endPosition;
+        for(int i = 0; i < 8; i++) {
+            ChessPosition endPosition = offSet.applyOffSet(myPosition, offSet.knightOffSets[i]);
             if (endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                 ChessMove validMove = new ChessMove(myPosition, endPosition, null);
-                int validationCode = validMove.checkPosition(board.getBoard());
+                int validationCode = validMove.checkPosition(board);
                 if(validationCode == 1) {
                     possibleMoves.add(validMove);
                 } else {
                     if (validationCode == 2) {
                         possibleMoves.add(validMove);
                     }
-                    break;
                 }
-            } else {
-                break;
             }
         }
         return possibleMoves;
@@ -104,7 +92,7 @@ class RookMoves implements MoveCalculator {
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
-                    int validationCode = validMove.checkPosition(board.getBoard());
+                    int validationCode = validMove.checkPosition(board);
                     if(validationCode == 1) {
                         possibleMoves.add(validMove);
                     } else {
@@ -133,7 +121,7 @@ class BishopMoves implements MoveCalculator {
                 carrier = endPosition;
                 if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                     ChessMove validMove = new ChessMove(myPosition, endPosition, null);
-                    int validationCode = validMove.checkPosition(board.getBoard());
+                    int validationCode = validMove.checkPosition(board);
                     if (validationCode == 1) {
                         possibleMoves.add(validMove);
                     } else {
@@ -154,20 +142,32 @@ class BishopMoves implements MoveCalculator {
 }
 
 class PawnMoves implements MoveCalculator {
+    Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(4);
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(4);
+        if(board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
+            moveWhite(board, myPosition);
+        } else {
+            moveBlack(board, myPosition);
+        }
+
+        return possibleMoves;
+    }
+
+    public void moveWhite(ChessBoard board, ChessPosition myPosition) {
+        int row = myPosition.getRow();
+        int col  = myPosition.getColumn();
         OffSet offSet = new OffSet();
         ChessPiece.PieceType promotionPiece = null;
-        int diagonals = checkDiagonals(board, myPosition);
-        ChessPosition diagonalLeft = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
-        ChessPosition diagoanlRight = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
-        if(board.getPiece(myPosition).checkIfMoved()) {
-            ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1 , myPosition.getColumn());
+        int diagonals = checkDiagonals(board, myPosition, ChessGame.TeamColor.WHITE);
+        ChessPosition diagonalLeft = new ChessPosition(row + 1, col - 1);
+        ChessPosition diagonalRight = new ChessPosition(row + 1, col + 1);
+        if(board.getPiece(myPosition).checkIfMoved(myPosition)) {
+            ChessPosition endPosition = new ChessPosition(row + 1, col);
             if(endPosition.getRow() == 0) {
                 promotionPiece = ChessPiece.PieceType.QUEEN;
             }
             ChessMove move = new ChessMove(myPosition, endPosition, null);
-            int validationCode = move.checkPosition(board.getBoard());
+            int validationCode = move.checkPosition(board);
             if(validationCode == 1) {
                 possibleMoves.add(move);
             }
@@ -176,19 +176,19 @@ class PawnMoves implements MoveCalculator {
                 ChessMove DL = new ChessMove(myPosition, diagonalLeft, null);
                 possibleMoves.add(DL);
             } else if(diagonals == 2) {
-                ChessMove DR = new ChessMove(myPosition,diagoanlRight,null);
+                ChessMove DR = new ChessMove(myPosition,diagonalRight,null);
                 possibleMoves.add(DR);
             } else if(diagonals == 3) {
                 ChessMove move1 = new ChessMove(myPosition, diagonalLeft,null);
-                ChessMove move2 = new ChessMove(myPosition, diagoanlRight,null);
+                ChessMove move2 = new ChessMove(myPosition, diagonalRight,null);
                 possibleMoves.add(move1);
                 possibleMoves.add(move2);
             }
         } else {
             for(int i = 0; i < 2; i++) {
-                ChessPosition endPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
+                ChessPosition endPosition = new ChessPosition(row + 1, col);
                 ChessMove move = new ChessMove(myPosition, endPosition, null);
-                int validationCode = move.checkPosition(board.getBoard());
+                int validationCode = move.checkPosition(board);
                 if(validationCode == 1) {
                     possibleMoves.add(move);
                 } else {
@@ -199,38 +199,100 @@ class PawnMoves implements MoveCalculator {
                 ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
                 possibleMoves.add(move);
             } else if(diagonals == 2) {
-                ChessMove move = new ChessMove(myPosition, diagoanlRight,null);
+                ChessMove move = new ChessMove(myPosition, diagonalRight,null);
                 possibleMoves.add(move);
             } else if(diagonals == 3) {
                 ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
-                ChessMove move2 = new ChessMove(myPosition, diagoanlRight,null);
+                ChessMove move2 = new ChessMove(myPosition, diagonalRight,null);
                 possibleMoves.add(move1);
                 possibleMoves.add(move2);
             }
         }
-
-        return possibleMoves;
     }
 
-    public int checkDiagonals(ChessBoard board, ChessPosition myPosition) {
+    public void moveBlack(ChessBoard board, ChessPosition myPosition) {
+        int row = myPosition.getRow();
+        int column = myPosition.getColumn();
+        OffSet offSet = new OffSet();
+        ChessPiece.PieceType promotionPiece = ChessPiece.PieceType.QUEEN;
+        int diagonals = checkDiagonals(board, myPosition, ChessGame.TeamColor.BLACK);
+        ChessPosition diagonalLeft = new ChessPosition(row - 1, column - 1);
+        ChessPosition diagonalRight = new ChessPosition(row - 1, column + 1);
+        if(board.getPiece(myPosition).checkIfMoved(myPosition)) {
+            ChessPosition endPosition = new ChessPosition(row - 1, column);
+            ChessMove move = new ChessMove(myPosition, endPosition, promotionPiece);
+            int validationCode = move.checkPosition(board);
+            if(validationCode == 1) {
+                possibleMoves.add(move);
+            }
+
+            if(diagonals == 1) {
+                ChessMove DL = new ChessMove(myPosition, diagonalLeft, promotionPiece);
+                possibleMoves.add(DL);
+            } else if(diagonals == 2) {
+                ChessMove DR = new ChessMove(myPosition,diagonalRight,promotionPiece);
+                possibleMoves.add(DR);
+            } else if(diagonals == 3) {
+                ChessMove move1 = new ChessMove(myPosition, diagonalLeft,promotionPiece);
+                ChessMove move2 = new ChessMove(myPosition, diagonalRight,promotionPiece);
+                possibleMoves.add(move1);
+                possibleMoves.add(move2);
+            }
+        } else {
+            for(int i = 0; i < 2; i++) {
+                ChessPosition endPosition = new ChessPosition(row - 1, column);
+                ChessMove move = new ChessMove(myPosition, endPosition, promotionPiece);
+                int validationCode = move.checkPosition(board);
+                if(validationCode == 1) {
+                    possibleMoves.add(move);
+                } else {
+                    break;
+                }
+            }
+            if(diagonals == 1) {
+                ChessMove move = new ChessMove(myPosition, diagonalLeft, promotionPiece);
+                possibleMoves.add(move);
+            } else if(diagonals == 2) {
+                ChessMove move = new ChessMove(myPosition, diagonalRight,promotionPiece);
+                possibleMoves.add(move);
+            } else if(diagonals == 3) {
+                ChessMove move1 = new ChessMove(myPosition, diagonalLeft, promotionPiece);
+                ChessMove move2 = new ChessMove(myPosition, diagonalRight,promotionPiece);
+                possibleMoves.add(move1);
+                possibleMoves.add(move2);
+            }
+        }
+    }
+
+    public int checkDiagonals(ChessBoard board, ChessPosition myPosition, ChessGame.TeamColor teamColor) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
         boolean enemyToLeft = false;
         boolean enemyToRight = false;
         ChessPiece[][] gameBoard = board.getBoard();
         ChessPosition leftDiag = null;
         ChessPosition rightDiag = null;
 
-        if(myPosition.getColumn() != 1) {
-            leftDiag = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
+        if(col != 1) {
+            if(teamColor == ChessGame.TeamColor.BLACK) {
+                leftDiag = new ChessPosition(row - 1, col - 1);
+            } else {
+                leftDiag = new ChessPosition(row + 1, col - 1);
+            }
         }
-        if(myPosition.getColumn() != 8) {
-            rightDiag = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
+        if(col != 8) {
+            if(teamColor == ChessGame.TeamColor.BLACK) {
+                rightDiag = new ChessPosition(row - 1, col + 1);
+            } else {
+                rightDiag = new ChessPosition(row + 1, col + 1);
+            }
         }
         ChessPosition[] diagonals = {leftDiag, rightDiag};
 
         for(int i = 0; i < 2; i++) {
             if(diagonals[i] != null) {
                 if(gameBoard[diagonals[i].getRow() - 1][diagonals[i].getColumn() - 1] != null) {
-                    if(board.getPiece(myPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
+                    if(board.getPiece(myPosition).getTeamColor() != board.getPiece(diagonals[i]).getTeamColor()) {
                         if (i == 0) {
                             enemyToLeft = true;
                         } else {

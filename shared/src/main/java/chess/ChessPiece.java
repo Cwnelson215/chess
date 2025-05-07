@@ -88,7 +88,16 @@ public class ChessPiece {
         return moves;
     }
 
-    public boolean checkIfMoved() {
+    public boolean checkIfMoved(ChessPosition myPosition) {
+        if(type == PieceType.PAWN) {
+            if(myPosition.getRow() != 2) {
+                hasMoved = true;
+            }
+        } else{
+            if(myPosition.getRow() != 1) {
+                hasMoved = true;
+            }
+        }
         return hasMoved;
     }
 }
