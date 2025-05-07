@@ -163,34 +163,45 @@ class PawnMoves implements MoveCalculator {
         ChessPosition diagonalRight = new ChessPosition(row + 1, col + 1);
         if(board.getPiece(myPosition).checkIfMoved(myPosition)) {
             ChessPosition endPosition = new ChessPosition(row + 1, col);
-            for(int i = 0; i < 4; i++) {
-                ChessMove move = new ChessMove(myPosition, endPosition, promotionPieces[i]);
+            if(myPosition.getRow() == 7) {
+                promotionLoop(board, myPosition, endPosition, 0);
+            } else {
+                ChessMove move = new ChessMove(myPosition, endPosition, null);
                 int validationCode = move.checkPosition(board);
                 if(validationCode == 1) {
                     possibleMoves.add(move);
                 }
             }
             if(diagonals == 1) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove DL = new ChessMove(myPosition, diagonalLeft, promotionPieces[i]);
+                if(myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                } else {
+                    ChessMove DL = new ChessMove(myPosition, diagonalLeft, null);
                     possibleMoves.add(DL);
                 }
             } else if(diagonals == 2) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove DR = new ChessMove(myPosition, diagonalRight, promotionPieces[i]);
+                if(myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else {
+                    ChessMove DR = new ChessMove(myPosition, diagonalRight, null);
                     possibleMoves.add(DR);
                 }
             } else if(diagonals == 3) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, promotionPieces[i]);
-                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, promotionPieces[i]);
+                if(myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else{
+                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
+                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
                     possibleMoves.add(move1);
                     possibleMoves.add(move2);
                 }
             }
         } else {
+            int carrierRow = row + 1;
             for(int i = 0; i < 2; i++) {
-                ChessPosition endPosition = new ChessPosition(row + 1, col);
+                ChessPosition endPosition = new ChessPosition(carrierRow, col);
+                carrierRow += 1;
                 ChessMove move = new ChessMove(myPosition, endPosition, null);
                 int validationCode = move.checkPosition(board);
                 if(validationCode == 1) {
@@ -223,34 +234,45 @@ class PawnMoves implements MoveCalculator {
         ChessPosition diagonalRight = new ChessPosition(row - 1, column + 1);
         if(board.getPiece(myPosition).checkIfMoved(myPosition)) {
             ChessPosition endPosition = new ChessPosition(row - 1, column);
-            for(int i = 0; i < 4; i++) {
-                ChessMove move = new ChessMove(myPosition, endPosition, promotionPieces[i]);
+            if(myPosition.getRow() == 2) {
+                promotionLoop(board, myPosition, endPosition, 0);
+            } else {
+                ChessMove move = new ChessMove(myPosition, endPosition, null);
                 int validationCode = move.checkPosition(board);
                 if(validationCode == 1) {
                     possibleMoves.add(move);
                 }
             }
             if(diagonals == 1) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove DL = new ChessMove(myPosition, diagonalLeft, promotionPieces[i]);
+                if(myPosition.getRow() == 2) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                } else {
+                    ChessMove DL = new ChessMove(myPosition, diagonalLeft, null);
                     possibleMoves.add(DL);
                 }
             } else if(diagonals == 2) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove DR = new ChessMove(myPosition, diagonalRight, promotionPieces[i]);
+                if(myPosition.getRow() == 2) {
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else {
+                    ChessMove DR = new ChessMove(myPosition, diagonalRight, null);
                     possibleMoves.add(DR);
                 }
             } else if(diagonals == 3) {
-                for(int i = 0; i < 4; i++) {
-                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, promotionPieces[i]);
-                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, promotionPieces[i]);
+                if(myPosition.getRow() == 2) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else{
+                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
+                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
                     possibleMoves.add(move1);
                     possibleMoves.add(move2);
                 }
             }
         } else {
+            int carrierRow = row - 1;
             for(int i = 0; i < 2; i++) {
-                ChessPosition endPosition = new ChessPosition(row - 1, column);
+                ChessPosition endPosition = new ChessPosition(carrierRow, column);
+                carrierRow -= 1;
                 ChessMove move = new ChessMove(myPosition, endPosition, null);
                 int validationCode = move.checkPosition(board);
                 if(validationCode == 1) {
@@ -325,6 +347,17 @@ class PawnMoves implements MoveCalculator {
 
         return 0;
     }
+
+    public void promotionLoop(ChessBoard board, ChessPosition myPosition, ChessPosition end, int diagonals) {
+        for (int i = 0; i < 4; i++) {
+            ChessMove move = new ChessMove(myPosition, end, promotionPieces[i]);
+            int validationCode = move.checkPosition(board);
+            if (validationCode == 1 || diagonals > 0) {
+                possibleMoves.add(move);
+            }
+        }
+    }
+
 }
 
 
