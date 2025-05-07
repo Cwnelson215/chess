@@ -90,7 +90,9 @@ public class ChessPiece {
 
     public boolean checkIfMoved(ChessPosition myPosition) {
         if(type == PieceType.PAWN) {
-            if(myPosition.getRow() != 2) {
+            if(myPosition.getRow() != 2 && pieceColor == ChessGame.TeamColor.WHITE) {
+                hasMoved = true;
+            } else if(myPosition.getRow() != 7 && pieceColor == ChessGame.TeamColor.BLACK) {
                 hasMoved = true;
             }
         } else{
