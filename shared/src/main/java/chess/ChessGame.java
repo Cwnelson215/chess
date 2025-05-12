@@ -69,26 +69,35 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         int endRow = move.getEndPosition().getRow() - 1;
         int endCol = move.getEndPosition().getColumn() - 1;
-        ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
-        TeamColor teamColor = gameBoard.getPiece(move.getStartPosition()).getTeamColor();
+        int validationCode = move.checkPosition(gameBoard);
 
-        if(promotionPiece == null) {
-            if(gameBoard.getPiece(move.getEndPosition()) == null) {
-                gameBoard.addPiece(move.getEndPosition(), gameBoard.getPiece(move.getStartPosition()));
+        if(gameBoard.getPiece(move.getStartPosition()) != null) {
+            ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
+            TeamColor teamColor = gameBoard.getPiece(move.getStartPosition()).getTeamColor();
+            if (promotionPiece == null) {
+                if (validationCode != 3) {
+                    if (gameBoard.getPiece(move.getEndPosition()) == null) {
+                        gameBoard.addPiece(move.getEndPosition(), gameBoard.getPiece(move.getStartPosition()));
+                    } else {
+                        gameBoard.getBoard()[endRow][endCol] = null;
+                        gameBoard.addPiece(move.getEndPosition(), gameBoard.getPiece(move.getStartPosition()));
+                    }
+                } else {
+                    throw new InvalidMoveException("Cannot Capture Same Team Color");
+                }
             } else {
-                gameBoard.getBoard()[endRow][endCol] = null;
-                gameBoard.addPiece(move.getEndPosition(), gameBoard.getPiece(move.getStartPosition()));
+                if (gameBoard.getPiece(move.getEndPosition()) == null) {
+                    gameBoard.addPiece(move.getEndPosition(), new ChessPiece(teamColor, promotionPiece));
+                } else {
+                    gameBoard.getBoard()[endRow][endCol] = null;
+                    gameBoard.addPiece(move.getEndPosition(), new ChessPiece(teamColor, promotionPiece));
+                }
             }
+
+            gameBoard.getBoard()[move.getStartPosition().getRow() - 1][move.getStartPosition().getColumn() - 1] = null;
         } else {
-            if(gameBoard.getPiece(move.getEndPosition()) == null) {
-                gameBoard.addPiece(move.getEndPosition(), new ChessPiece(teamColor, promotionPiece));
-            } else {
-                gameBoard.getBoard()[endRow][endCol] = null;
-                gameBoard.addPiece(move.getEndPosition(), new ChessPiece(teamColor, promotionPiece));
-            }
+            throw new InvalidMoveException("No piece at starting position");
         }
-
-        gameBoard.getBoard()[move.getStartPosition().getRow() - 1][move.getStartPosition().getColumn() - 1] = null;
     }
 
     /**
