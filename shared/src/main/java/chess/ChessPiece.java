@@ -17,6 +17,8 @@ public class ChessPiece {
     private final PieceType type;
     private boolean hasMoved = false;
     private Collection<ChessMove> validMoves;
+    private boolean pinned = false;
+    private boolean inCheck = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -101,5 +103,13 @@ public class ChessPiece {
             }
         }
         return hasMoved;
+    }
+
+    public void setCheck(boolean tf) {
+        this.inCheck = tf;
+    }
+
+    public boolean getInCheck() {
+        return inCheck;
     }
 }
