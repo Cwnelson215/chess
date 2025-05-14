@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
 
@@ -62,7 +63,15 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        return gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
+        Collection<ChessMove> possibleMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
+        ChessPiece selectedPiece = gameBoard.getPiece(startPosition);
+
+        if(isInCheck(selectedPiece.getTeamColor())) {
+            ChessPosition kingPosition = findKing(selectedPiece.getTeamColor());
+            possibleMoves = checkMoves(gameBoard.getPiece(kingPosition).pieceMoves(gameBoard, kingPosition), gameBoard.getPiece(kingPosition).getTeamColor());
+        }
+
+        return possibleMoves;
     }
 
     public void checkIfValidMove(Collection<ChessMove> moves, ChessMove move) throws InvalidMoveException {
@@ -91,10 +100,8 @@ public class ChessGame {
             //Checks if this is a valid move for the piece to make
             checkIfValidMove(possibleMoves, move);
 
-            if(gameBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
-                if(isInCheck(gameBoard.getPiece(move.getStartPosition()).getTeamColor())) {
-                    throw new InvalidMoveException("You're in check");
-                }
+            if(isInCheck(gameBoard.getPiece(move.getStartPosition()).getTeamColor())) {
+                throw new InvalidMoveException("You're in check");
             }
             ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
             TeamColor teamColor = gameBoard.getPiece(move.getStartPosition()).getTeamColor();
@@ -141,8 +148,9 @@ public class ChessGame {
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
                 if(gameBoard.getBoard()[i][j] != null) {
-                    if(gameBoard.getBoard()[i][j].getTeamColor() != teamColor) {
-                        Collection<ChessMove> possibleMoves = validMoves(new ChessPosition(i+1, j+1));
+                    if(gameBoard.getBoard()[i][j].getTeamColor() != teamColor && gameBoard.getBoard()[i][j].getPieceType() != ChessPiece.PieceType.KING) {
+                        ChessPosition piecePosition = new ChessPosition(i+1, j+1);
+                        Collection<ChessMove> possibleMoves = gameBoard.getPiece(piecePosition).pieceMoves(gameBoard, piecePosition);
                         ChessMove check = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, null);
                         if(possibleMoves.contains(check)) {
                             gameBoard.getPiece(kingPosition).setCheck(true);
@@ -173,7 +181,10 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        ChessPosition kingPosition = findKing(teamColor);
+        Collection<ChessMove> kingMoves = gameBoard.getPiece(kingPosition).pieceMoves(gameBoard, kingPosition);
+        kingMoves = checkMoves(kingMoves, gameBoard.getPiece(kingPosition).getTeamColor());
+        return kingMoves.isEmpty();
     }
 
     /**
@@ -216,6 +227,29 @@ public class ChessGame {
         }
         return;
     }
+
+    public Collection<ChessMove> checkMoves(Collection<ChessMove> moves, TeamColor teamColor) {
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                ChessPiece piece = gameBoard.getBoard()[i][j];
+                if(piece != null) {
+                    if(piece.getTeamColor() != teamColor) {
+                        Collection<ChessMove> pieceMoves = gameBoard.getPiece(new ChessPosition(i + 1, j + 1)).pieceMoves(gameBoard, new ChessPosition(i + 1, j + 1));
+                        for(ChessMove move : moves) {
+                            for(ChessMove pieceMove : pieceMoves) {
+                                if(pieceMove.getEndPosition().equals(move.getEndPosition())) {
+                                    moves.remove(move);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return moves;
+    }
+
 
 
 }
