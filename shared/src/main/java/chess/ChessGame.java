@@ -93,6 +93,11 @@ public class ChessGame {
             int endRow = move.getEndPosition().getRow() - 1;
             int endCol = move.getEndPosition().getColumn() - 1;
             int validationCode = move.checkPosition(gameBoard);
+
+            if(isInCheck(gameBoard.getPiece(move.getStartPosition()).getTeamColor())) {
+                throw new InvalidMoveException("You're in check");
+            }
+
             Collection<ChessMove> possibleMoves = validMoves(move.getStartPosition());
 
             //Checks if it's the right teams turn
@@ -100,9 +105,6 @@ public class ChessGame {
             //Checks if this is a valid move for the piece to make
             checkIfValidMove(possibleMoves, move);
 
-            if(isInCheck(gameBoard.getPiece(move.getStartPosition()).getTeamColor())) {
-                throw new InvalidMoveException("You're in check");
-            }
             ChessPiece.PieceType promotionPiece = move.getPromotionPiece();
             TeamColor teamColor = gameBoard.getPiece(move.getStartPosition()).getTeamColor();
 
