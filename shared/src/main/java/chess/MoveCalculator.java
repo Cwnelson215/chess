@@ -48,7 +48,7 @@ class QueenMoves implements MoveCalculator {
                     } else {
                         if(validationCode == 2) {
                             possibleMoves.add(validMove);
-                            checkForPin(board, validMove.getEndPosition(), offSet.rookOffSets[i], j);
+                            checkForPin(board, validMove.getEndPosition(), offSet.queenOffSets[i], j);
                         }
                         break;
                     }
@@ -100,7 +100,7 @@ class QueenMoves implements MoveCalculator {
             if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                 ChessMove validMove = new ChessMove(position, endPosition, null);
                 int validationCode = validMove.checkPosition(board);
-                if (validationCode == 2) {
+                if (validationCode == 3) {
                     if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
                         board.getPiece(position).setPinned(true);
                     }
@@ -283,7 +283,7 @@ class BishopMoves implements MoveCalculator {
             if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
                 ChessMove validMove = new ChessMove(position, endPosition, null);
                 int validationCode = validMove.checkPosition(board);
-                if (validationCode == 2) {
+                if (validationCode == 3) {
                     if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
                         board.getPiece(position).setPinned(true);
                     }

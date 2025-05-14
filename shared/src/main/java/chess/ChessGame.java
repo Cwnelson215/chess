@@ -15,8 +15,6 @@ public class ChessGame {
     private TeamColor currentTeam = TeamColor.WHITE;
     private ChessBoard gameBoard = new ChessBoard();
 
-
-
     /**
      * @return Which team's turn it is
      */
@@ -69,13 +67,13 @@ public class ChessGame {
 
         if(selectedPiece.getPinned()) {
             ChessPosition aggressorPosition =  findAggressor(selectedPiece.getTeamColor(), startPosition);
-            possibleMoves = getPinnedPath(possibleMoves, aggressorPosition);
+            possibleMoves = getAttackPath(possibleMoves, startPosition, aggressorPosition);
         }
 
         if(isInCheck(selectedPiece.getTeamColor())) {
             ChessPosition kingPosition = findKing(selectedPiece.getTeamColor());
             ChessPosition aggressorPosition = findAggressor(selectedPiece.getTeamColor(), kingPosition);
-            possibleMoves = intervene(possibleMoves, aggressorPosition);
+            possibleMoves = getAttackPath(possibleMoves, kingPosition, aggressorPosition);
         }
 
         return possibleMoves;
@@ -257,9 +255,14 @@ public class ChessGame {
         return null;
     }
 
-    public Collection<ChessMove> intervene(Collection<ChessMove> myMoves, ChessPosition aggressor) {
+    public Collection<ChessMove> getAttackPath(Collection<ChessMove> myMoves, ChessPosition myPosition, ChessPosition aggressor) {
         Collection<ChessMove> possibleMoves = new ArrayList<>(8);
-        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressor).getCheckPath(gameBoard, aggressor);
+        Collection<ChessMove> aggressorMoves = new ArrayList<>(8);
+        if(gameBoard.getPiece(myPosition).getPieceType() == ChessPiece.PieceType.KING) {
+            aggressorMoves = gameBoard.getPiece(aggressor).getCheckPath(gameBoard, aggressor);
+        } else {
+            aggressorMoves = gameBoard.getPiece(aggressor).pieceMoves(gameBoard, aggressor);
+        }
         if(gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.ROOK || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.QUEEN || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.BISHOP) {
             for (ChessMove move : myMoves) {
                 for (ChessMove aggressorMove : aggressorMoves) {
@@ -268,7 +271,9 @@ public class ChessGame {
                         break;
                     }
                     if (move.getEndPosition().equals(aggressorMove.getEndPosition())) {
-                        possibleMoves.add(move);
+                        if(moveValidation(gameBoard, move.getStartPosition(), move.getEndPosition())){
+                            possibleMoves.add(move);
+                        }
                     }
                 }
             }
@@ -284,32 +289,27 @@ public class ChessGame {
         return possibleMoves;
     }
 
-    public Collection<ChessMove> getPinnedPath(Collection<ChessMove> myMoves, ChessPosition aggressor) {
-        Collection<ChessMove> possibleMoves = new ArrayList<>(8);
-        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressor).pieceMoves(gameBoard, aggressor);
-        if(gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.ROOK || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.QUEEN || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.BISHOP) {
-            for (ChessMove move : myMoves) {
-                for (ChessMove aggressorMove : aggressorMoves) {
-                    if (move.getEndPosition().equals(aggressor)) {
-                        possibleMoves.add(move);
-                        break;
-                    }
-                    if (move.getEndPosition().equals(aggressorMove.getEndPosition())) {
-                        possibleMoves.add(move);
-                    }
-                }
-            }
-        } else {
-            for(ChessMove move : myMoves) {
-                if(move.getEndPosition().equals(aggressor)) {
-                    possibleMoves.add(move);
-                    break;
+    public boolean moveValidation(ChessBoard board, ChessPosition myPosition, ChessPosition endPosition) {
+        ChessBoard testBoard = new ChessBoard();
+        ChessGame testGame = new ChessGame();
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0;  j < 8; j++) {
+                if(board.getBoard()[i][j] != null) {
+                    testBoard.addPiece(new ChessPosition(i+1, j+1), board.getBoard()[i][j]);
                 }
             }
         }
 
-        return possibleMoves;
+        testGame.setBoard(testBoard);
+        testBoard.addPiece(endPosition, testBoard.getPiece(myPosition));
+        testBoard.addPiece(myPosition, null);
+        if(testGame.isInCheck(board.getPiece(myPosition).getTeamColor())) {
+            return false;
+        }
+
+        return true;
     }
+
 
     public void calculateMoves() {
         Collection<ChessMove> possibleMoves = new ArrayList<>(8);
