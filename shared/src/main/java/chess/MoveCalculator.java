@@ -28,6 +28,7 @@ class KingMoves implements MoveCalculator {
         }
         return possibleMoves;
     }
+
 }
 
 class QueenMoves implements MoveCalculator {
@@ -47,6 +48,7 @@ class QueenMoves implements MoveCalculator {
                     } else {
                         if(validationCode == 2) {
                             possibleMoves.add(validMove);
+                            checkForPin(board, validMove.getEndPosition(), offSet.rookOffSets[i], j);
                         }
                         break;
                     }
@@ -56,6 +58,55 @@ class QueenMoves implements MoveCalculator {
             }
         }
         return possibleMoves;
+    }
+
+    public Collection<ChessMove> getCheckPath(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
+        OffSet offSet = new OffSet();
+        for(int i = 0; i < 8; i++) {
+            ChessPosition carrier = myPosition;
+            for(int j = 0; j < 7; j++) {
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.queenOffSets[i]);
+                carrier = endPosition;
+                if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
+                    int validationCode = validMove.checkPosition(board);
+                    if (validationCode == 1) {
+                        possibleMoves.add(validMove);
+                    } else {
+                        if (validationCode == 2) {
+                            if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                                possibleMoves.add(validMove);
+                                return possibleMoves;
+                            }
+                        }
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            possibleMoves.clear();
+        }
+        return possibleMoves;
+    }
+
+    public void checkForPin(ChessBoard board, ChessPosition position, int[] offSet, int i) {
+        OffSet os = new OffSet();
+        ChessPosition carrier = position;
+        for(int j = i; j < 7; j++) {
+            ChessPosition endPosition = os.applyOffSet(carrier, offSet);
+            carrier = endPosition;
+            if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                ChessMove validMove = new ChessMove(position, endPosition, null);
+                int validationCode = validMove.checkPosition(board);
+                if (validationCode == 2) {
+                    if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                        board.getPiece(position).setPinned(true);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -79,6 +130,8 @@ class KnightMoves implements MoveCalculator {
         }
         return possibleMoves;
     }
+
+
 }
 
 class RookMoves implements MoveCalculator {
@@ -98,6 +151,7 @@ class RookMoves implements MoveCalculator {
                     } else {
                         if(validationCode == 2) {
                             possibleMoves.add(validMove);
+                            checkForPin(board, validMove.getEndPosition(), offSet.rookOffSets[i], j);
                         }
                         break;
                     }
@@ -107,6 +161,55 @@ class RookMoves implements MoveCalculator {
             }
         }
         return possibleMoves;
+    }
+
+    public Collection<ChessMove> getCheckPath(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
+        OffSet offSet = new OffSet();
+        for(int i = 0; i < 4; i++) {
+            ChessPosition carrier = myPosition;
+            for(int j = 0; j < 7; j++) {
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.rookOffSets[i]);
+                carrier = endPosition;
+                if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
+                    int validationCode = validMove.checkPosition(board);
+                    if (validationCode == 1) {
+                        possibleMoves.add(validMove);
+                    } else {
+                        if (validationCode == 2) {
+                            if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                                possibleMoves.add(validMove);
+                                return possibleMoves;
+                            }
+                        }
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            possibleMoves.clear();
+        }
+        return possibleMoves;
+    }
+
+    public void checkForPin(ChessBoard board, ChessPosition position, int[] offSet, int i) {
+        OffSet os = new OffSet();
+        ChessPosition carrier = position;
+        for(int j = i; j < 7; j++) {
+            ChessPosition endPosition = os.applyOffSet(carrier, offSet);
+            carrier = endPosition;
+            if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                ChessMove validMove = new ChessMove(position, endPosition, null);
+                int validationCode = validMove.checkPosition(board);
+                if (validationCode == 3) {
+                    if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                        board.getPiece(position).setPinned(true);
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -127,6 +230,7 @@ class BishopMoves implements MoveCalculator {
                     } else {
                         if (validationCode == 2) {
                             possibleMoves.add(validMove);
+                            checkForPin(board, validMove.getEndPosition(), offSet.bishopOffSets[i], j);
                         }
                         break;
                     }
@@ -137,6 +241,55 @@ class BishopMoves implements MoveCalculator {
         }
         
         return possibleMoves;
+    }
+
+    public Collection<ChessMove> getCheckPath(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> possibleMoves = new ArrayList<ChessMove>(7);
+        OffSet offSet = new OffSet();
+        for(int i = 0; i < 4; i++) {
+            ChessPosition carrier = myPosition;
+            for(int j = 0; j < 7; j++) {
+                ChessPosition endPosition = offSet.applyOffSet(carrier, offSet.bishopOffSets[i]);
+                carrier = endPosition;
+                if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                    ChessMove validMove = new ChessMove(myPosition, endPosition, null);
+                    int validationCode = validMove.checkPosition(board);
+                    if (validationCode == 1) {
+                        possibleMoves.add(validMove);
+                    } else {
+                        if (validationCode == 2) {
+                            if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                                possibleMoves.add(validMove);
+                                return possibleMoves;
+                            }
+                        }
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            possibleMoves.clear();
+        }
+        return possibleMoves;
+    }
+
+    public void checkForPin(ChessBoard board, ChessPosition position, int[] offSet, int i) {
+        OffSet os = new OffSet();
+        ChessPosition carrier = position;
+        for(int j = i; j < 7; j++) {
+            ChessPosition endPosition = os.applyOffSet(carrier, offSet);
+            carrier = endPosition;
+            if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+                ChessMove validMove = new ChessMove(position, endPosition, null);
+                int validationCode = validMove.checkPosition(board);
+                if (validationCode == 2) {
+                    if(board.getPiece(validMove.getEndPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+                        board.getPiece(position).setPinned(true);
+                    }
+                }
+            }
+        }
     }
 
 }

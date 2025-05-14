@@ -63,12 +63,19 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        calculateMoves();
         Collection<ChessMove> possibleMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
         ChessPiece selectedPiece = gameBoard.getPiece(startPosition);
 
+        if(selectedPiece.getPinned()) {
+            ChessPosition aggressorPosition =  findAggressor(selectedPiece.getTeamColor(), startPosition);
+            possibleMoves = getPinnedPath(possibleMoves, aggressorPosition);
+        }
+
         if(isInCheck(selectedPiece.getTeamColor())) {
             ChessPosition kingPosition = findKing(selectedPiece.getTeamColor());
-            possibleMoves = checkMoves(gameBoard.getPiece(kingPosition).pieceMoves(gameBoard, kingPosition), gameBoard.getPiece(kingPosition).getTeamColor());
+            ChessPosition aggressorPosition = findAggressor(selectedPiece.getTeamColor(), kingPosition);
+            possibleMoves = intervene(possibleMoves, aggressorPosition);
         }
 
         return possibleMoves;
@@ -185,7 +192,6 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         ChessPosition kingPosition = findKing(teamColor);
         Collection<ChessMove> kingMoves = gameBoard.getPiece(kingPosition).pieceMoves(gameBoard, kingPosition);
-        kingMoves = checkMoves(kingMoves, gameBoard.getPiece(kingPosition).getTeamColor());
         return kingMoves.isEmpty();
     }
 
@@ -230,18 +236,17 @@ public class ChessGame {
         return;
     }
 
-    public Collection<ChessMove> checkMoves(Collection<ChessMove> moves, TeamColor teamColor) {
+    public ChessPosition findAggressor(TeamColor teamColor, ChessPosition kingPosition) {
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
-                ChessPiece piece = gameBoard.getBoard()[i][j];
-                if(piece != null) {
-                    if(piece.getTeamColor() != teamColor) {
-                        Collection<ChessMove> pieceMoves = gameBoard.getPiece(new ChessPosition(i + 1, j + 1)).pieceMoves(gameBoard, new ChessPosition(i + 1, j + 1));
-                        for(ChessMove move : moves) {
-                            for(ChessMove pieceMove : pieceMoves) {
-                                if(pieceMove.getEndPosition().equals(move.getEndPosition())) {
-                                    moves.remove(move);
-                                }
+                ChessPiece aggressor = gameBoard.getBoard()[i][j];
+                if(aggressor != null) {
+                    if(aggressor.getTeamColor() != teamColor) {
+                        ChessPosition aggressorPosition = new ChessPosition(i+1, j+1);
+                        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressorPosition).pieceMoves(gameBoard, aggressorPosition);
+                        for(ChessMove move : aggressorMoves) {
+                            if(move.getEndPosition().equals(kingPosition)) {
+                                return aggressorPosition;
                             }
                         }
                     }
@@ -249,9 +254,73 @@ public class ChessGame {
             }
         }
 
-        return moves;
+        return null;
     }
 
+    public Collection<ChessMove> intervene(Collection<ChessMove> myMoves, ChessPosition aggressor) {
+        Collection<ChessMove> possibleMoves = new ArrayList<>(8);
+        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressor).getCheckPath(gameBoard, aggressor);
+        if(gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.ROOK || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.QUEEN || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.BISHOP) {
+            for (ChessMove move : myMoves) {
+                for (ChessMove aggressorMove : aggressorMoves) {
+                    if (move.getEndPosition().equals(aggressor)) {
+                        possibleMoves.add(move);
+                        break;
+                    }
+                    if (move.getEndPosition().equals(aggressorMove.getEndPosition())) {
+                        possibleMoves.add(move);
+                    }
+                }
+            }
+        } else {
+            for(ChessMove move : myMoves) {
+                if(move.getEndPosition().equals(aggressor)) {
+                    possibleMoves.add(move);
+                    break;
+                }
+            }
+        }
 
+        return possibleMoves;
+    }
+
+    public Collection<ChessMove> getPinnedPath(Collection<ChessMove> myMoves, ChessPosition aggressor) {
+        Collection<ChessMove> possibleMoves = new ArrayList<>(8);
+        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressor).pieceMoves(gameBoard, aggressor);
+        if(gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.ROOK || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.QUEEN || gameBoard.getPiece(aggressor).getPieceType() == ChessPiece.PieceType.BISHOP) {
+            for (ChessMove move : myMoves) {
+                for (ChessMove aggressorMove : aggressorMoves) {
+                    if (move.getEndPosition().equals(aggressor)) {
+                        possibleMoves.add(move);
+                        break;
+                    }
+                    if (move.getEndPosition().equals(aggressorMove.getEndPosition())) {
+                        possibleMoves.add(move);
+                    }
+                }
+            }
+        } else {
+            for(ChessMove move : myMoves) {
+                if(move.getEndPosition().equals(aggressor)) {
+                    possibleMoves.add(move);
+                    break;
+                }
+            }
+        }
+
+        return possibleMoves;
+    }
+
+    public void calculateMoves() {
+        Collection<ChessMove> possibleMoves = new ArrayList<>(8);
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                if(gameBoard.getBoard()[i][j] != null) {
+                    possibleMoves = gameBoard.getBoard()[i][j].pieceMoves(gameBoard, new ChessPosition(i+1, j+1));
+                }
+            }
+            possibleMoves.clear();
+        }
+    }
 
 }

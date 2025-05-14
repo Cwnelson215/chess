@@ -65,6 +65,12 @@ public class ChessPiece {
         return type;
     }
 
+    public void setPinned(boolean tf) {
+        pinned = tf;
+    }
+
+    public boolean getPinned() {return pinned;}
+
     /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
@@ -112,4 +118,17 @@ public class ChessPiece {
     public boolean getInCheck() {
         return inCheck;
     }
+
+    public Collection<ChessMove> getCheckPath(ChessBoard board, ChessPosition myPosition) {
+        Collection<ChessMove> moves = null;
+        if(type == PieceType.QUEEN) {
+            moves = new QueenMoves().getCheckPath(board, myPosition);
+        } else if(type == PieceType.ROOK) {
+            moves = new RookMoves().getCheckPath(board, myPosition);
+        } else if(type == PieceType.BISHOP) {
+            moves = new BishopMoves().getCheckPath(board, myPosition);
+        }
+        return moves;
+    }
 }
+
