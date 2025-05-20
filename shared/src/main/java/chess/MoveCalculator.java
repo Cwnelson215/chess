@@ -196,16 +196,13 @@ class PawnMoves implements MoveCalculator {
         ChessPosition[] diagonals = getChessPositions(teamColor, col, row);
 
         for(int i = 0; i < 2; i++) {
-            if(diagonals[i] != null) {
-                if(gameBoard[diagonals[i].getRow() - 1][diagonals[i].getColumn() - 1] != null) {
-                    if(board.getPiece(myPosition).getTeamColor() != board.getPiece(diagonals[i]).getTeamColor()) {
-                        if (i == 0) {
-                            enemyToLeft = true;
-                        } else {
-                            enemyToRight = true;
-                        }
-                    }
-                }
+            if(diagonals[i] == null) continue;
+            if(gameBoard[diagonals[i].getRow() - 1][diagonals[i].getColumn() - 1] == null) continue;
+            if(board.getPiece(myPosition).getTeamColor() == board.getPiece(diagonals[i]).getTeamColor()) continue;
+            if (i == 0) {
+                enemyToLeft = true;
+            } else {
+                enemyToRight = true;
             }
         }
 

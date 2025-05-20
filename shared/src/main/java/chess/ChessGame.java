@@ -145,16 +145,14 @@ public class ChessGame {
         ChessPosition kingPosition = findKing(teamColor);
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
-                if(gameBoard.getBoard()[i][j] != null) {
-                    if(gameBoard.getBoard()[i][j].getTeamColor() != teamColor) {
-                        ChessPosition piecePosition = new ChessPosition(i+1, j+1);
-                        Collection<ChessMove> possibleMoves = gameBoard.getPiece(piecePosition).pieceMoves(gameBoard, piecePosition);
-                        ChessMove check = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, null);
-                        ChessMove checkPawn = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, ChessPiece.PieceType.QUEEN);
-                        if(possibleMoves.contains(check) || possibleMoves.contains(checkPawn)) {
-                            return true;
-                        }
-                    }
+                if(gameBoard.getBoard()[i][j] == null) continue;
+                if(gameBoard.getBoard()[i][j].getTeamColor() == teamColor) continue;
+                ChessPosition piecePosition = new ChessPosition(i+1, j+1);
+                Collection<ChessMove> possibleMoves = gameBoard.getPiece(piecePosition).pieceMoves(gameBoard, piecePosition);
+                ChessMove check = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, null);
+                ChessMove checkPawn = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, ChessPiece.PieceType.QUEEN);
+                if(possibleMoves.contains(check) || possibleMoves.contains(checkPawn)) {
+                    return true;
                 }
             }
         }
