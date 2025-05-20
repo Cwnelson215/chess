@@ -135,34 +135,10 @@ class PawnMoves implements MoveCalculator {
                     possibleMoves.add(move);
                 }
             }
-            if(diagonals == 1) {
-                if(myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                } else {
-                    ChessMove left = new ChessMove(myPosition, diagonalLeft, null);
-                    possibleMoves.add(left);
-                }
-            } else if(diagonals == 2) {
-                if(myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else {
-                    ChessMove right = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(right);
-                }
-            } else if(diagonals == 3) {
-                if(myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else{
-                    ChessMove left = new ChessMove(myPosition, diagonalLeft, null);
-                    ChessMove right = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(left);
-                    possibleMoves.add(right);
-                }
-            }
+            addDiagonals(board, diagonals, myPosition, diagonalLeft, diagonalRight, true);
         } else {
             doubleMove(board, myPosition, row, col);
-            addDiagonals(diagonals, myPosition, diagonalLeft, diagonalRight);
+            addDiagonals(board, diagonals, myPosition, diagonalLeft, diagonalRight, false);
         }
     }
 
@@ -183,34 +159,10 @@ class PawnMoves implements MoveCalculator {
                     possibleMoves.add(move);
                 }
             }
-            if(diagonals == 1) {
-                if(myPosition.getRow() == 2) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                } else {
-                    ChessMove DL = new ChessMove(myPosition, diagonalLeft, null);
-                    possibleMoves.add(DL);
-                }
-            } else if(diagonals == 2) {
-                if(myPosition.getRow() == 2) {
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else {
-                    ChessMove DR = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(DR);
-                }
-            } else if(diagonals == 3) {
-                if(myPosition.getRow() == 2) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else{
-                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
-                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(move1);
-                    possibleMoves.add(move2);
-                }
-            }
+            addDiagonals(board, diagonals, myPosition, diagonalLeft, diagonalRight, true);
         } else {
             doubleMove(board, myPosition, row, col);
-            addDiagonals(diagonals, myPosition, diagonalLeft, diagonalRight);
+            addDiagonals(board, diagonals, myPosition, diagonalLeft, diagonalRight, false);
         }
     }
 
@@ -301,18 +253,49 @@ class PawnMoves implements MoveCalculator {
         }
     }
 
-    public void addDiagonals(int diagonals, ChessPosition myPosition, ChessPosition diagonalLeft, ChessPosition diagonalRight) {
+    public void addDiagonals(ChessBoard board, int diagonals, ChessPosition myPosition,
+                             ChessPosition diagonalLeft, ChessPosition diagonalRight, boolean loopNeeded) {
         if(diagonals == 1) {
-            ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
-            possibleMoves.add(move);
+            if(loopNeeded) {
+                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                } else {
+                    ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
+                    possibleMoves.add(move);
+                }
+            } else {
+                ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
+                possibleMoves.add(move);
+            }
         } else if(diagonals == 2) {
-            ChessMove move = new ChessMove(myPosition, diagonalRight,null);
-            possibleMoves.add(move);
+            if(loopNeeded) {
+                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else {
+                    ChessMove move = new ChessMove(myPosition, diagonalRight, null);
+                    possibleMoves.add(move);
+                }
+            } else {
+                ChessMove move = new ChessMove(myPosition, diagonalRight, null);
+                possibleMoves.add(move);
+            }
         } else if(diagonals == 3) {
-            ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
-            ChessMove move2 = new ChessMove(myPosition, diagonalRight,null);
-            possibleMoves.add(move1);
-            possibleMoves.add(move2);
+            if(loopNeeded) {
+                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
+                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
+                    promotionLoop(board, myPosition, diagonalRight, diagonals);
+                } else {
+                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
+                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
+                    possibleMoves.add(move1);
+                    possibleMoves.add(move2);
+                }
+            } else {
+                ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
+                ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
+                possibleMoves.add(move1);
+                possibleMoves.add(move2);
+            }
         }
     }
 
