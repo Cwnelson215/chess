@@ -15,8 +15,6 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
     private boolean hasMoved = false;
-    private Collection<ChessMove> validMoves;
-    private boolean inCheck = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -29,12 +27,12 @@ public class ChessPiece {
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type && Objects.equals(validMoves, that.validMoves);
+        return hasMoved == that.hasMoved && pieceColor == that.pieceColor && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type, hasMoved, validMoves);
+        return Objects.hash(pieceColor, type, hasMoved);
     }
 
     /**
@@ -103,9 +101,6 @@ public class ChessPiece {
         return hasMoved;
     }
 
-    public void setCheck(boolean tf) {
-        this.inCheck = tf;
-    }
 
     public int addMoves(ChessBoard board, ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> possibleMoves) {
         int validationCode = 0;

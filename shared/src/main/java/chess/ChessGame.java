@@ -152,7 +152,6 @@ public class ChessGame {
                         ChessMove check = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, null);
                         ChessMove checkPawn = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, ChessPiece.PieceType.QUEEN);
                         if(possibleMoves.contains(check) || possibleMoves.contains(checkPawn)) {
-                            gameBoard.getPiece(kingPosition).setCheck(true);
                             return true;
                         }
                     }
