@@ -162,6 +162,25 @@ public class ChessGame {
         return false;
     }
 
+    public boolean checkForPossibleMoves(TeamColor teamColor) {
+        Collection<ChessMove> pieceMoves = new ArrayList<>(8);
+        for(int i = 0; i < 8; i++) {
+            for(int j = 0; j < 8; j++) {
+                ChessPosition piecePosition = new ChessPosition(i+1, j+1);
+                if(gameBoard.getPiece(piecePosition) != null) {
+                    ChessPiece piece = gameBoard.getPiece(piecePosition);
+                    if(piece.getTeamColor() == teamColor) {
+                        pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition));
+                    }
+                }
+                if(!pieceMoves.isEmpty()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * Determines if the given team is in checkmate
      *
@@ -169,23 +188,8 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        Collection<ChessMove> pieceMoves = new ArrayList<>(8);
         if(isInCheck(teamColor)) {
-            for(int i = 0; i < 8; i++) {
-                for(int j = 0; j < 8; j++) {
-                    ChessPosition piecePosition = new ChessPosition(i+1, j+1);
-                    if(gameBoard.getPiece(piecePosition) != null) {
-                        ChessPiece piece = gameBoard.getPiece(piecePosition);
-                        if(piece.getTeamColor() == teamColor) {
-                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition));
-                        }
-                    }
-                    if(!pieceMoves.isEmpty()) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return checkForPossibleMoves(teamColor);
         }
         return false;
     }
@@ -198,23 +202,8 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        Collection<ChessMove> pieceMoves = new ArrayList<>(8);
         if(!isInCheck(teamColor)) {
-            for(int i = 0; i < 8; i++) {
-                for(int j = 0; j < 8; j++) {
-                    ChessPosition piecePosition = new ChessPosition(i+1, j+1);
-                    if(gameBoard.getPiece(piecePosition) != null) {
-                        ChessPiece piece = gameBoard.getPiece(piecePosition);
-                        if(piece.getTeamColor() == teamColor) {
-                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition));
-                        }
-                    }
-                    if(!pieceMoves.isEmpty()) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return checkForPossibleMoves(teamColor);
         }
         return false;
     }

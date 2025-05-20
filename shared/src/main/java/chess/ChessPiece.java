@@ -16,7 +16,6 @@ public class ChessPiece {
     private final PieceType type;
     private boolean hasMoved = false;
     private Collection<ChessMove> validMoves;
-    private boolean pinned = false;
     private boolean inCheck = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
@@ -108,7 +107,7 @@ public class ChessPiece {
         this.inCheck = tf;
     }
 
-    public int getMoves(ChessBoard board, ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> possibleMoves) {
+    public int addMoves(ChessBoard board, ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> possibleMoves) {
         int validationCode = 0;
         if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
             ChessMove validMove = new ChessMove(myPosition, endPosition, null);
