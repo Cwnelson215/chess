@@ -145,8 +145,8 @@ public class ChessGame {
         ChessPosition kingPosition = findKing(teamColor);
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
-                if(gameBoard.getBoard()[i][j] == null) continue;
-                if(gameBoard.getBoard()[i][j].getTeamColor() == teamColor) continue;
+                if(gameBoard.getBoard()[i][j] == null) {continue;}
+                if(gameBoard.getBoard()[i][j].getTeamColor() == teamColor) {continue;}
                 ChessPosition piecePosition = new ChessPosition(i+1, j+1);
                 Collection<ChessMove> possibleMoves = gameBoard.getPiece(piecePosition).pieceMoves(gameBoard, piecePosition);
                 ChessMove check = new ChessMove(new ChessPosition(i+1, j+1), kingPosition, null);
@@ -227,12 +227,10 @@ public class ChessGame {
         ChessPosition king = null;
         for(int i = 0; i < 8; i++) {
             for(int j = 0; j < 8; j++) {
-                if(gameBoard.getBoard()[i][j] != null) {
-                    if (gameBoard.getBoard()[i][j].getPieceType() == ChessPiece.PieceType.KING) {
-                        if (gameBoard.getBoard()[i][j].getTeamColor() == kingColor) {
-                            king = new ChessPosition(i + 1, j + 1);
-                        }
-                    }
+                if(gameBoard.getBoard()[i][j] == null) {continue;}
+                if (gameBoard.getBoard()[i][j].getPieceType() != ChessPiece.PieceType.KING) {continue;}
+                if (gameBoard.getBoard()[i][j].getTeamColor() == kingColor) {
+                    king = new ChessPosition(i + 1, j + 1);
                 }
             }
         }
