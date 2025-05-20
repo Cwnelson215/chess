@@ -8,7 +8,7 @@ import java.util.Objects;
  * For a class that can manage a chess game, making moves on a board
  * <p>
  * Note: You can add to this class, but you may not alter
- * signature of the existing methods.
+ *  the signature of the existing methods.
  */
 public class ChessGame {
 
@@ -67,15 +67,13 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         calculateMoves();
         Collection<ChessMove> possibleMoves = gameBoard.getPiece(startPosition).pieceMoves(gameBoard, startPosition);
-        possibleMoves = getMoves(possibleMoves, startPosition);
+        possibleMoves = getMoves(possibleMoves);
 
         return possibleMoves;
     }
 
     public void checkIfValidMove(Collection<ChessMove> moves, ChessMove move) throws InvalidMoveException {
-        if(moves.contains(move)) {
-            return;
-        } else {
+        if(!moves.contains(move)){
             throw new InvalidMoveException("Invalid Move");
         }
     }
@@ -171,7 +169,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        Collection<ChessMove> pieceMoves = new ArrayList<ChessMove>(8);
+        Collection<ChessMove> pieceMoves = new ArrayList<>(8);
         if(isInCheck(teamColor)) {
             for(int i = 0; i < 8; i++) {
                 for(int j = 0; j < 8; j++) {
@@ -179,7 +177,7 @@ public class ChessGame {
                     if(gameBoard.getPiece(piecePosition) != null) {
                         ChessPiece piece = gameBoard.getPiece(piecePosition);
                         if(piece.getTeamColor() == teamColor) {
-                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition), piecePosition);
+                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition));
                         }
                     }
                     if(!pieceMoves.isEmpty()) {
@@ -200,7 +198,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        Collection<ChessMove> pieceMoves = new ArrayList<ChessMove>(8);
+        Collection<ChessMove> pieceMoves = new ArrayList<>(8);
         if(!isInCheck(teamColor)) {
             for(int i = 0; i < 8; i++) {
                 for(int j = 0; j < 8; j++) {
@@ -208,7 +206,7 @@ public class ChessGame {
                     if(gameBoard.getPiece(piecePosition) != null) {
                         ChessPiece piece = gameBoard.getPiece(piecePosition);
                         if(piece.getTeamColor() == teamColor) {
-                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition), piecePosition);
+                            pieceMoves = getMoves(piece.pieceMoves(gameBoard, piecePosition));
                         }
                     }
                     if(!pieceMoves.isEmpty()) {
@@ -259,31 +257,9 @@ public class ChessGame {
         if(piece.getTeamColor() != getTeamTurn()) {
             throw new InvalidMoveException("IT'S NOT YOUR TURN!");
         }
-        return;
     }
 
-    public ChessPosition findAggressor(TeamColor teamColor, ChessPosition kingPosition) {
-        for(int i = 0; i < 8; i++) {
-            for(int j = 0; j < 8; j++) {
-                ChessPiece aggressor = gameBoard.getBoard()[i][j];
-                if(aggressor != null) {
-                    if(aggressor.getTeamColor() != teamColor) {
-                        ChessPosition aggressorPosition = new ChessPosition(i+1, j+1);
-                        Collection<ChessMove> aggressorMoves = gameBoard.getPiece(aggressorPosition).pieceMoves(gameBoard, aggressorPosition);
-                        for(ChessMove move : aggressorMoves) {
-                            if(move.getEndPosition().equals(kingPosition)) {
-                                return aggressorPosition;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public Collection<ChessMove> getMoves(Collection<ChessMove> myMoves, ChessPosition myPosition) {
+    public Collection<ChessMove> getMoves(Collection<ChessMove> myMoves) {
         Collection<ChessMove> possibleMoves = new ArrayList<>(8);
         for(ChessMove move : myMoves) {
             if(moveValidation(gameBoard, move)) {

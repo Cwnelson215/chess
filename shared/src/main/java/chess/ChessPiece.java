@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -65,12 +64,6 @@ public class ChessPiece {
         return type;
     }
 
-    public void setPinned(boolean tf) {
-        pinned = tf;
-    }
-
-    public boolean getPinned() {return pinned;}
-
     /**
      * Calculates all the positions a chess piece can move to
      * Does not take into account moves that are illegal due to leaving the king in
@@ -114,5 +107,22 @@ public class ChessPiece {
     public void setCheck(boolean tf) {
         this.inCheck = tf;
     }
+
+    public int getMoves(ChessBoard board, ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> possibleMoves) {
+        int validationCode = 0;
+        if(endPosition.getRow() != -1 && endPosition.getColumn() != -1) {
+            ChessMove validMove = new ChessMove(myPosition, endPosition, null);
+            validationCode = validMove.checkPosition(board);
+            if(validationCode == 1) {
+                possibleMoves.add(validMove);
+            } else {
+                if(validationCode == 2) {
+                    possibleMoves.add(validMove);
+                }
+            }
+        }
+        return validationCode;
+    }
+
 }
 
