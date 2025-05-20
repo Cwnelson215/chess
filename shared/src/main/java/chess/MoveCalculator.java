@@ -256,46 +256,26 @@ class PawnMoves implements MoveCalculator {
     public void addDiagonals(ChessBoard board, int diagonals, ChessPosition myPosition,
                              ChessPosition diagonalLeft, ChessPosition diagonalRight, boolean loopNeeded) {
         if(diagonals == 1) {
-            if(loopNeeded) {
-                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                } else {
-                    ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
-                    possibleMoves.add(move);
-                }
-            } else {
-                ChessMove move = new ChessMove(myPosition, diagonalLeft, null);
-                possibleMoves.add(move);
-            }
+            loopNeeded(board, diagonals, myPosition, diagonalLeft, loopNeeded);
         } else if(diagonals == 2) {
-            if(loopNeeded) {
-                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else {
-                    ChessMove move = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(move);
-                }
+            loopNeeded(board, diagonals, myPosition, diagonalRight, loopNeeded);
+        } else if(diagonals == 3) {
+            loopNeeded(board, diagonals, myPosition, diagonalLeft, loopNeeded);
+            loopNeeded(board, diagonals, myPosition, diagonalRight, loopNeeded);
+        }
+    }
+
+    private void loopNeeded(ChessBoard board, int diagonals, ChessPosition myPosition, ChessPosition diagonal, boolean loopNeeded) {
+        if(loopNeeded) {
+            if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
+                promotionLoop(board, myPosition, diagonal, diagonals);
             } else {
-                ChessMove move = new ChessMove(myPosition, diagonalRight, null);
+                ChessMove move = new ChessMove(myPosition, diagonal, null);
                 possibleMoves.add(move);
             }
-        } else if(diagonals == 3) {
-            if(loopNeeded) {
-                if(myPosition.getRow() == 2 || myPosition.getRow() == 7) {
-                    promotionLoop(board, myPosition, diagonalLeft, diagonals);
-                    promotionLoop(board, myPosition, diagonalRight, diagonals);
-                } else {
-                    ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
-                    ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
-                    possibleMoves.add(move1);
-                    possibleMoves.add(move2);
-                }
-            } else {
-                ChessMove move1 = new ChessMove(myPosition, diagonalLeft, null);
-                ChessMove move2 = new ChessMove(myPosition, diagonalRight, null);
-                possibleMoves.add(move1);
-                possibleMoves.add(move2);
-            }
+        } else {
+            ChessMove move = new ChessMove(myPosition, diagonal, null);
+            possibleMoves.add(move);
         }
     }
 
@@ -340,7 +320,8 @@ class OffSet {
         int endRow = -1;
         int endCol = -1;
 
-        if(1 <= start.getRow() + changes[0] && 8 >= start.getRow() + changes[0] && start.getColumn() + changes[1] >= 1 && start.getColumn() + changes[1] <= 8 ) {
+        if(1 <= start.getRow() + changes[0] && 8 >= start.getRow() + changes[0]
+                && start.getColumn() + changes[1] >= 1 && start.getColumn() + changes[1] <= 8 ) {
             endRow = start.getRow() + changes[0];
             endCol = start.getColumn() + changes[1];
         }
