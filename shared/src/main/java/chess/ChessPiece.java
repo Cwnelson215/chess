@@ -114,21 +114,5 @@ public class ChessPiece {
     public void setCheck(boolean tf) {
         this.inCheck = tf;
     }
-
-    public boolean getInCheck() {
-        return inCheck;
-    }
-
-    public Collection<ChessMove> getCheckPath(ChessBoard board, ChessPosition myPosition) {
-        Collection<ChessMove> moves = null;
-        if(type == PieceType.QUEEN) {
-            moves = new QueenMoves().getCheckPath(board, myPosition);
-        } else if(type == PieceType.ROOK) {
-            moves = new RookMoves().getCheckPath(board, myPosition);
-        } else if(type == PieceType.BISHOP) {
-            moves = new BishopMoves().getCheckPath(board, myPosition);
-        }
-        return moves;
-    }
 }
 
