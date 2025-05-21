@@ -1,13 +1,15 @@
 package server;
 
+import com.google.gson.Gson;
+import model.UserData;
 import passoff.exception.ResponseParseException;
+import service.RegisterRequest;
+import service.UserService;
 import spark.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
 
 public class Server {
+    private final UserService userService = new UserService();
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -24,7 +26,9 @@ public class Server {
     }
 
     public Object registerUser(Request req, Response res) throws ResponseParseException {
-
+        UserData user = new Gson().fromJson(req.body(), UserData.class);
+        var registerResult = userService.register(new RegisterRequest(user.getUsername(), user.getPassword(), user.getEmail()));
+        return new Gson().toJson(registerResult);
     }
 
     public void stop() {
