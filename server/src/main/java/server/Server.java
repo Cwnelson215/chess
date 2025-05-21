@@ -9,13 +9,8 @@ import java.util.Map;
 
 public class Server {
 
-    private Collection<Map> users = new ArrayList<>(1);
-    private Collection<Map> authData = new ArrayList<>(1);
-    private Collection<Map> games = new ArrayList<>(1);
-
     public int run(int desiredPort) {
         Spark.port(desiredPort);
-
         Spark.staticFiles.location("web");
 
         // Register your endpoints and handle exceptions here.
