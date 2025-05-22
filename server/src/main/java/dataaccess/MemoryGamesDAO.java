@@ -25,4 +25,8 @@ public class MemoryGamesDAO implements GamesDAO {
     public Map listGames() {
         return games;
     }
+
+    public void updateGame(GameData game, String gameID) {
+        games.put(gameID, game);
+    }
 }

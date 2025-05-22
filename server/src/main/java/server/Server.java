@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import model.GameData;
 import model.UserData;
+import service.JoinRequest;
 import service.LoginRequest;
 import service.RegisterRequest;
 import service.UserService;
@@ -22,6 +23,8 @@ public class Server {
         Spark.delete("/session", this::logoutUser);
         Spark.get("/game", this::gamesList);
         Spark.post("/game", this::createGame);
+        Spark.put("/game", this::joinGame);
+        Spark.delete("/db", this::clearData);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -50,7 +53,7 @@ public class Server {
 
     public Object clearData(Request req, Response res) throws Exception {
         userService.clearDataBase();
-        return null;
+        return new Gson().toJson(null);
     }
 
     public Object gamesList(Request req, Response res) throws Exception {
@@ -64,6 +67,13 @@ public class Server {
         GameData game = new Gson().fromJson(req.body(), GameData.class);
         var createResponse = userService.create(game.getGameName(), authToken);
         return new Gson().toJson(createResponse);
+    }
+
+    public Object joinGame(Request req, Response res) throws Exception {
+        String authToken = req.headers("authorization");
+        JoinRequest joinRequest = new Gson().fromJson(req.body(), JoinRequest.class);
+        var joinResult = userService.join(joinRequest, authToken);
+        return new Gson().toJson(joinResult);
     }
 
     public void stop() {

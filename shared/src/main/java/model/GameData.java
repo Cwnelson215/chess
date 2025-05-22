@@ -2,6 +2,7 @@ package model;
 
 import chess.ChessGame;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class GameData {
@@ -26,8 +27,8 @@ public class GameData {
         return gameID.toString();
     }
 
-    public void assignPlayerColor(String username) {
-        if(whiteUsername == null) {
+    public void assignPlayerColor(String username, String playerColor) {
+        if(Objects.equals(playerColor, "WHITE")) {
             whiteUsername = username;
         } else {
             blackUsername = username;

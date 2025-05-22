@@ -36,36 +36,46 @@ public class UserService {
         if(user == null) {
             throw new Exception("username or password not found");
         }
-        var auth = authDatabase.getAuth(username);
+        var auth = authDatabase.getAuthToken(username);
         if(auth == null) {
-            throw new Exception("Bad request");
+            throw new Exception("Unauthorized");
         }
         return new LoginResult(username, auth.getAuthToken());
     }
 
     public Object logout(String authToken) throws Exception {
-        var auth = authDatabase.getAuth(authToken);
-        if(auth == null) {
-            throw new Exception("Unauthorized");
-        }
+        checkAuthorization(authToken);
         authDatabase.deleteAuth(authToken);
         return null;
     }
 
     public ListGamesResponse listGames(String authToken) throws Exception {
-        var auth = authDatabase.getAuth(authToken);
-        if(auth == null) {
-            throw new Exception("Unauthorized");
-        }
+        checkAuthorization(authToken);
         return new ListGamesResponse(gamesDatabase.listGames());
     }
 
     public CreateResponse create(String gameName, String authToken) throws Exception {
-        var auth = authDatabase.getAuth(authToken);
-        if(auth == null) {
-            throw new Exception("Unauthorized");
-        }
+        checkAuthorization(authToken);
         GameData newGame = gamesDatabase.createGame(gameName);
         return new CreateResponse(newGame.getGameID());
+    }
+
+    public Object join(JoinRequest joinRequest, String authToken) throws Exception {
+        checkAuthorization(authToken);
+        String username = authDatabase.getUsername(authToken);
+        GameData game = gamesDatabase.getGame(joinRequest.gameID());
+        if(game == null) {
+            throw new Exception("No game found with given ID");
+        }
+        game.assignPlayerColor(username, joinRequest.playerColor());
+        gamesDatabase.updateGame(game, joinRequest.gameID());
+        return null;
+    }
+
+    public void checkAuthorization(String authToken) throws Exception {
+        var auth = authDatabase.getAuth(authToken);
+        if (auth == null) {
+            throw new Exception("Unauthorized");
+        }
     }
 }
