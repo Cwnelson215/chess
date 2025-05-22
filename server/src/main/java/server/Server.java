@@ -3,6 +3,7 @@ package server;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import passoff.exception.ResponseParseException;
 import service.LoginRequest;
@@ -23,7 +24,7 @@ public class Server {
         Spark.post("/session", this::loginUser);
         Spark.delete("/session", this::logoutUser);
         Spark.get("/game", this::gamesList);
-        Spark.post("/game", this::)
+        Spark.post("/game", this::createGame);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -33,8 +34,8 @@ public class Server {
     }
 
     public Object registerUser(Request req, Response res) throws ResponseParseException {
-        UserData user = new Gson().fromJson(req.body(), UserData.class);
-        var registerResult = userService.register(new RegisterRequest(user.getUsername(), user.getPassword(), user.getEmail()));
+        RegisterRequest request = new Gson().fromJson(req.body(), RegisterRequest.class);
+        var registerResult = userService.register(request);
         return new Gson().toJson(registerResult);
     }
 
@@ -61,9 +62,11 @@ public class Server {
         return new Gson().toJson(gamesList);
     }
 
-    public Object createGame(Request req, Response res) {
-        AuthData auth = new Gson().fromJson(req.body(), AuthData.class);
-        var createResponse = userService.create()
+    public Object createGame(Request req, Response res) throws DataAccessException {
+        String authToken = req.headers("authorization");
+        GameData game = new Gson().fromJson(req.body(), GameData.class);
+        var createResponse = userService.create(game.getGameName(), authToken);
+        return new Gson().toJson(createResponse);
     }
 
     public void stop() {

@@ -34,6 +34,7 @@ public class GameData {
         }
     }
 
+    public String getGameName() {return gameName;}
     public String getGameID() {
         return gameID;
     }
