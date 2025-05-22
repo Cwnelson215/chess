@@ -5,7 +5,7 @@ import chess.ChessGame;
 import java.util.Random;
 
 public class GameData {
-    private int gameID;
+    private String gameID;
     private String whiteUsername;
     private String blackUsername;
     private String gameName;
@@ -14,7 +14,7 @@ public class GameData {
     public GameData(String gameName) {
         this.gameName = gameName;
         this.game = new ChessGame();
-        this.gameID = Integer.parseInt(generateGameID());
+        this.gameID = generateGameID();
     }
 
     public String generateGameID() {
@@ -34,7 +34,7 @@ public class GameData {
         }
     }
 
-    public int getGameID() {
+    public String getGameID() {
         return gameID;
     }
 }

@@ -11,6 +11,14 @@ public class AuthDOA {
         return auths.get(authToken);
     }
 
+    public void clear() {
+        auths.clear();
+    }
+
+    public void deleteAuth(String authToken) {
+        auths.remove(authToken);
+    }
+
     public void createAuth(AuthData newAuth) {
         auths.put(newAuth.getAuthToken(), newAuth);
     }
