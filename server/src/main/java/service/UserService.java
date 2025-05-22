@@ -1,30 +1,25 @@
 package service;
-import dataaccess.AuthDOA;
-import dataaccess.DataAccessException;
-import dataaccess.GamesDOA;
-import dataaccess.UserDOA;
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import javax.xml.crypto.Data;
-
 public class UserService {
-    UserDOA userDatabase = new UserDOA();
-    AuthDOA authDatabase = new AuthDOA();
-    GamesDOA gamesDatabase = new GamesDOA();
+    UserDAO userDatabase = new MemoryUserDAO();
+    AuthDAO authDatabase = new MemoryAuthDAO();
+    GamesDAO gamesDatabase = new MemoryGamesDAO();
 
-    public Object clearDataBase() {
+    public void clearDataBase() {
         userDatabase.clear();
         authDatabase.clear();
-        return null;
+        gamesDatabase.clear();
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) {
+    public RegisterResult register(RegisterRequest registerRequest) throws Exception {
         String username = registerRequest.username();
         UserData user = userDatabase.getUser(username);
         if(user != null) {
-            return null;
+            throw new Exception("Username already taken");
         }
         UserData newUser = new UserData(username, registerRequest.password(),
                 registerRequest.email());
@@ -34,43 +29,43 @@ public class UserService {
         return new RegisterResult(username, userAuth.getAuthToken());
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws DataAccessException {
+    public LoginResult login(LoginRequest loginRequest) throws Exception {
         String username = loginRequest.username();
         String password = loginRequest.password();
         var user = userDatabase.getUser(username, password);
         if(user == null) {
-            throw new DataAccessException("username or password not found");
+            throw new Exception("username or password not found");
         }
         var auth = authDatabase.getAuth(username);
         if(auth == null) {
-            throw new DataAccessException("Bad request");
+            throw new Exception("Bad request");
         }
         return new LoginResult(username, auth.getAuthToken());
     }
 
-    public Object logout(String authToken) {
+    public Object logout(String authToken) throws Exception {
         var auth = authDatabase.getAuth(authToken);
         if(auth == null) {
-            return new DataAccessException("Unauthorized");
+            throw new Exception("Unauthorized");
         }
         authDatabase.deleteAuth(authToken);
         return null;
     }
 
-    public ListGamesResponse listGames(String authToken) throws DataAccessException {
+    public ListGamesResponse listGames(String authToken) throws Exception {
         var auth = authDatabase.getAuth(authToken);
         if(auth == null) {
-            throw new DataAccessException("Unauthorized");
+            throw new Exception("Unauthorized");
         }
         return new ListGamesResponse(gamesDatabase.listGames());
     }
 
-    public CreateResponse create(String gameName, String authToken) throws DataAccessException {
+    public CreateResponse create(String gameName, String authToken) throws Exception {
         var auth = authDatabase.getAuth(authToken);
         if(auth == null) {
-            throw new DataAccessException("Unauthorized");
+            throw new Exception("Unauthorized");
         }
-        GameData newGame = gamesDatabase.creatGame(gameName);
+        GameData newGame = gamesDatabase.createGame(gameName);
         return new CreateResponse(newGame.getGameID());
     }
 }

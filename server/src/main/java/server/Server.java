@@ -1,11 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
-import model.AuthData;
 import model.GameData;
 import model.UserData;
-import passoff.exception.ResponseParseException;
 import service.LoginRequest;
 import service.RegisterRequest;
 import service.UserService;
@@ -33,7 +30,7 @@ public class Server {
         return Spark.port();
     }
 
-    public Object registerUser(Request req, Response res) throws ResponseParseException {
+    public Object registerUser(Request req, Response res) throws Exception {
         RegisterRequest request = new Gson().fromJson(req.body(), RegisterRequest.class);
         var registerResult = userService.register(request);
         return new Gson().toJson(registerResult);
@@ -46,23 +43,23 @@ public class Server {
     }
 
     public Object logoutUser(Request req, Response res) throws Exception {
-        AuthData auth = new Gson().fromJson(req.body(), AuthData.class);
-        var logoutResult = userService.logout(auth.getAuthToken());
+        String authToken = req.headers("authorization");
+        var logoutResult = userService.logout(authToken);
         return new Gson().toJson(logoutResult);
     }
 
-    public Object clearData(Request req, Response res) throws ResponseParseException {
+    public Object clearData(Request req, Response res) throws Exception {
         userService.clearDataBase();
         return null;
     }
 
-    public Object gamesList(Request req, Response res) throws ResponseParseException, DataAccessException {
-        AuthData auth = new Gson().fromJson(req.body(), AuthData.class);
-        var gamesList = userService.listGames(auth.getAuthToken());
+    public Object gamesList(Request req, Response res) throws Exception {
+        String authToken = req.headers("authorization");
+        var gamesList = userService.listGames(authToken);
         return new Gson().toJson(gamesList);
     }
 
-    public Object createGame(Request req, Response res) throws DataAccessException {
+    public Object createGame(Request req, Response res) throws Exception {
         String authToken = req.headers("authorization");
         GameData game = new Gson().fromJson(req.body(), GameData.class);
         var createResponse = userService.create(game.getGameName(), authToken);
