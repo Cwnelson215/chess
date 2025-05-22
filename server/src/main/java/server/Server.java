@@ -51,7 +51,7 @@ public class Server {
         return new Gson().toJson(logoutResult);
     }
 
-    public Object clearData(Request req, Response res) throws Exception {
+    public Object clearData(Request req, Response res) {
         userService.clearDataBase();
         return new Gson().toJson(null);
     }

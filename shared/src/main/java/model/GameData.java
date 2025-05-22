@@ -6,16 +6,15 @@ import java.util.Objects;
 import java.util.Random;
 
 public class GameData {
-    private String gameID;
+    private final String gameID = generateGameID();
     private String whiteUsername;
     private String blackUsername;
-    private String gameName;
+    private final String gameName;
     private ChessGame game;
 
     public GameData(String gameName) {
         this.gameName = gameName;
         this.game = new ChessGame();
-        this.gameID = generateGameID();
     }
 
     public String generateGameID() {
