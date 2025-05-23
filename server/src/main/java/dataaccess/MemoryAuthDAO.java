@@ -13,16 +13,6 @@ public class MemoryAuthDAO implements AuthDAO {
         return auths.get(authToken);
     }
 
-    public AuthData getAuthData(String username) {
-        AtomicReference<AuthData> data = new AtomicReference<>();
-        auths.forEach((key, value) -> {
-           if(Objects.equals(value.getUsername(), username)) {
-               data.set(value);
-           }
-        });
-        return data.get();
-    }
-
     public String getUsername(String authToken) {return auths.get(authToken).getUsername();}
 
     public void clear() {
