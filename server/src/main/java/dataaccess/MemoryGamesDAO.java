@@ -6,9 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MemoryGamesDAO implements GamesDAO {
-    private final Map<String, GameData> games = new HashMap<>(1);
+    private final Map<Integer, GameData> games = new HashMap<>(1);
 
-    public GameData getGame(String gameID) {
+    public GameData getGame(int gameID) {
         return games.get(gameID);
     }
 
@@ -22,11 +22,15 @@ public class MemoryGamesDAO implements GamesDAO {
         games.clear();
     }
 
-    public Map listGames() {
+    public Map<Integer, GameData> listGames() {
         return games;
     }
 
-    public void updateGame(GameData game, String gameID) {
+    public void updateGame(GameData game, int gameID) {
         games.put(gameID, game);
+    }
+
+    public boolean isEmpty() {
+        return games.isEmpty();
     }
 }

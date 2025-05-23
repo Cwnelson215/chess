@@ -31,5 +31,8 @@ public class MemoryUserDAO implements UserDAO {
         users.clear();
     }
 
+    public boolean isEmpty() {
+        return users.isEmpty();
+    }
 
 }

@@ -4,22 +4,30 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.Objects;
+
 public class UserService {
     UserDAO userDatabase = new MemoryUserDAO();
     AuthDAO authDatabase = new MemoryAuthDAO();
     GamesDAO gamesDatabase = new MemoryGamesDAO();
 
-    public void clearDataBase() {
+    public void clearDataBase() throws HTTPException {
         userDatabase.clear();
         authDatabase.clear();
         gamesDatabase.clear();
+        if(!userDatabase.isEmpty() || !authDatabase.isEmpty() || !gamesDatabase.isEmpty()) {
+            throw new HTTPException(500, "Failed to clear databases");
+        }
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws Exception {
+    public RegisterResult register(RegisterRequest registerRequest) throws HTTPException {
         String username = registerRequest.username();
+        if(username == null || registerRequest.password() == null || registerRequest.email() == null) {
+            throw new HTTPException(400, "Bad Request");
+        }
         UserData user = userDatabase.getUser(username);
         if(user != null) {
-            throw new Exception("Username already taken");
+            throw new HTTPException(403, "Error: username already taken");
         }
         UserData newUser = new UserData(username, registerRequest.password(),
                 registerRequest.email());
@@ -29,53 +37,62 @@ public class UserService {
         return new RegisterResult(username, userAuth.getAuthToken());
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws Exception {
+    public LoginResult login(LoginRequest loginRequest) throws HTTPException {
         String username = loginRequest.username();
         String password = loginRequest.password();
         var user = userDatabase.getUser(username, password);
+        if(username == null || password == null) {
+            throw new HTTPException(400, "Bad Request");
+        }
         if(user == null) {
-            throw new Exception("username or password not found");
+            throw new HTTPException(401, "Unauthorized");
         }
         var auth = authDatabase.getAuthToken(username);
-        if(auth == null) {
-            throw new Exception("Unauthorized");
-        }
         return new LoginResult(username, auth.getAuthToken());
     }
 
-    public Object logout(String authToken) throws Exception {
+    public Object logout(String authToken) throws HTTPException {
         checkAuthorization(authToken);
         authDatabase.deleteAuth(authToken);
         return null;
     }
 
-    public ListGamesResponse listGames(String authToken) throws Exception {
+    public ListGamesResponse listGames(String authToken) throws HTTPException {
         checkAuthorization(authToken);
         return new ListGamesResponse(gamesDatabase.listGames());
     }
 
-    public CreateResponse create(String gameName, String authToken) throws Exception {
+    public CreateResponse create(String gameName, String authToken) throws HTTPException {
+        if(gameName == null) {
+            throw new HTTPException(400, "Bad Request");
+        }
         checkAuthorization(authToken);
         GameData newGame = gamesDatabase.createGame(gameName);
         return new CreateResponse(newGame.getGameID());
     }
 
-    public Object join(JoinRequest joinRequest, String authToken) throws Exception {
+    public void join(JoinRequest joinRequest, String authToken) throws HTTPException {
         checkAuthorization(authToken);
         String username = authDatabase.getUsername(authToken);
         GameData game = gamesDatabase.getGame(joinRequest.gameID());
         if(game == null) {
-            throw new Exception("No game found with given ID");
+            throw new HTTPException(400, "Bad Request");
+        }
+        if(!Objects.equals(joinRequest.playerColor(), "WHITE") &&
+                !Objects.equals(joinRequest.playerColor(), "BLACK")) {
+            throw new HTTPException(400, "Bad Request");
+        }
+        if(game.getColorUsername(joinRequest.playerColor()) != null) {
+            throw new HTTPException(403, "already taken");
         }
         game.assignPlayerColor(username, joinRequest.playerColor());
         gamesDatabase.updateGame(game, joinRequest.gameID());
-        return null;
     }
 
-    public void checkAuthorization(String authToken) throws Exception {
+    public void checkAuthorization(String authToken) throws HTTPException {
         var auth = authDatabase.getAuth(authToken);
         if (auth == null) {
-            throw new Exception("Unauthorized");
+            throw new HTTPException(401, "Unauthorized");
         }
     }
 }

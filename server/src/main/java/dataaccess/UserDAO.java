@@ -7,4 +7,5 @@ public interface UserDAO {
     UserData getUser(String username, String password);
     void createUser(UserData newUser);
     void clear();
+    boolean isEmpty();
 }

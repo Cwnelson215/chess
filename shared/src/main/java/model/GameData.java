@@ -6,7 +6,7 @@ import java.util.Objects;
 import java.util.Random;
 
 public class GameData {
-    private final String gameID = generateGameID();
+    private final int gameID = generateGameID();
     private String whiteUsername;
     private String blackUsername;
     private final String gameName;
@@ -17,13 +17,9 @@ public class GameData {
         this.game = new ChessGame();
     }
 
-    public String generateGameID() {
-        StringBuilder gameID = new StringBuilder();
+    public int generateGameID() {
         Random random = new Random();
-        for(int i = 0; i < 16; i++) {
-            gameID.append(random.nextInt(10));
-        }
-        return gameID.toString();
+        return random.nextInt(1000, 9999);
     }
 
     public void assignPlayerColor(String username, String playerColor) {
@@ -34,8 +30,16 @@ public class GameData {
         }
     }
 
+    public String getColorUsername(String color) {
+        if(Objects.equals(color, "WHITE")) {
+            return whiteUsername;
+        } else {
+            return blackUsername;
+        }
+    }
+
     public String getGameName() {return gameName;}
-    public String getGameID() {
+    public int getGameID() {
         return gameID;
     }
 }

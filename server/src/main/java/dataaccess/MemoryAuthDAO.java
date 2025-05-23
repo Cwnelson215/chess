@@ -36,4 +36,8 @@ public class MemoryAuthDAO implements AuthDAO {
     public void createAuth(AuthData newAuth) {
         auths.put(newAuth.getAuthToken(), newAuth);
     }
+
+    public boolean isEmpty() {
+        return auths.isEmpty();
+    }
 }

@@ -5,9 +5,10 @@ import model.GameData;
 import java.util.Map;
 
 public interface GamesDAO {
-    GameData getGame(String gameID);
+    GameData getGame(int gameID);
     GameData createGame(String gameName);
-    Map<String, GameData> listGames();
-    void updateGame(GameData game, String gameID);
+    Map<Integer, GameData> listGames();
+    void updateGame(GameData game, int gameID);
     void clear();
+    boolean isEmpty();
 }
