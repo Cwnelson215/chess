@@ -37,12 +37,7 @@ class UserServiceTest {
     }
 
     @Test public void logoutFailure() throws HTTPException {
-        String username = "Carter";
-        String password = "1234";
-        String email = "123@456.com";
         String authToken = "auth";
-        var result = service.register(new RegisterRequest(username, password, email));
-
         assertThrows(HTTPException.class, () -> service.logout(authToken));
     }
 
