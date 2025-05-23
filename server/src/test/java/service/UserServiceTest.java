@@ -19,12 +19,12 @@ class UserServiceTest {
     }
 
     @Test
-    public void registerFailure_BadRequest() throws HTTPException {
+    public void registerFailureBadRequest() throws HTTPException {
         assertThrows(HTTPException.class, () -> service.register(new RegisterRequest(null, password, email)));
     }
 
     @Test
-    public void registerFailure_UsernameTaken() throws HTTPException {
+    public void registerFailureUsernameTaken() throws HTTPException {
         service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.register(new RegisterRequest(username, password, email)));
     }
@@ -53,7 +53,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void loginFailure_Unauthorized()  {
+    public void loginFailureUnauthorized()  {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
         String username2 = "NotCarter";
@@ -62,7 +62,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void loginFailure_BadRequest()  {
+    public void loginFailureBadRequest()  {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
         String username2 = null;
@@ -92,13 +92,13 @@ class UserServiceTest {
     }
 
     @Test
-    public void createFailure_NullGameName() throws HTTPException {
+    public void createFailureNullGameName() throws HTTPException {
         var result= service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.create(null, result.authToken()));
     }
 
     @Test
-    public void createFailure_BadAuthToken() throws HTTPException {
+    public void createFailureBadAuthToken() throws HTTPException {
         assertThrows(HTTPException.class, () -> service.create("new game", "notValidAuthToken"));
     }
 
@@ -112,13 +112,13 @@ class UserServiceTest {
     }
 
     @Test
-    public void joinFailure_Bad_GameID() {
+    public void joinFailureBadGameID() {
         var result = service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.join(new JoinRequest("WHITE", 132), result.authToken()));
     }
 
     @Test
-    public void joinFailure_Bad_ColorTaken() {
+    public void joinFailureBadColorTaken() {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         service.join(new JoinRequest("WHITE", game.gameID()), result.authToken());
@@ -128,7 +128,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void joinFailure_ColorNull() {
+    public void joinFailureColorNull() {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         assertThrows(HTTPException.class, () -> service.join(new JoinRequest(null, game.gameID()), result.authToken()));
