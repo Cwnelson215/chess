@@ -4,6 +4,8 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Objects;
 
 public class UserService {
@@ -47,7 +49,9 @@ public class UserService {
         if(user == null) {
             throw new HTTPException(401, "Unauthorized");
         }
-        var auth = authDatabase.getAuthToken(username);
+        AuthData newAuth = new AuthData(username);
+        authDatabase.createAuth(newAuth);
+        AuthData auth = authDatabase.getAuth(newAuth.getAuthToken());
         return new LoginResult(username, auth.getAuthToken());
     }
 
@@ -68,13 +72,13 @@ public class UserService {
         }
         checkAuthorization(authToken);
         GameData newGame = gamesDatabase.createGame(gameName);
-        return new CreateResponse(newGame.getGameID());
+        return new CreateResponse(Integer.parseInt(newGame.getGameID()));
     }
 
     public void join(JoinRequest joinRequest, String authToken) throws HTTPException {
         checkAuthorization(authToken);
         String username = authDatabase.getUsername(authToken);
-        GameData game = gamesDatabase.getGame(joinRequest.gameID());
+        GameData game = gamesDatabase.getGame(String.valueOf(joinRequest.gameID()));
         if(game == null) {
             throw new HTTPException(400, "Bad Request");
         }
@@ -86,7 +90,7 @@ public class UserService {
             throw new HTTPException(403, "already taken");
         }
         game.assignPlayerColor(username, joinRequest.playerColor());
-        gamesDatabase.updateGame(game, joinRequest.gameID());
+        gamesDatabase.updateGame(game, String.valueOf(joinRequest.gameID()));
     }
 
     public void checkAuthorization(String authToken) throws HTTPException {

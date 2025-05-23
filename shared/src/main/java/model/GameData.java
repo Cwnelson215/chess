@@ -6,20 +6,20 @@ import java.util.Objects;
 import java.util.Random;
 
 public class GameData {
-    private final int gameID = generateGameID();
+    private final String gameID = generateGameID();
     private String whiteUsername;
     private String blackUsername;
     private final String gameName;
-    private ChessGame game;
+    private final ChessGame game;
 
     public GameData(String gameName) {
         this.gameName = gameName;
         this.game = new ChessGame();
     }
 
-    public int generateGameID() {
+    public String generateGameID() {
         Random random = new Random();
-        return random.nextInt(1000, 9999);
+        return String.valueOf(random.nextInt(1000, 9999));
     }
 
     public void assignPlayerColor(String username, String playerColor) {
@@ -39,7 +39,14 @@ public class GameData {
     }
 
     public String getGameName() {return gameName;}
-    public int getGameID() {
+
+    public String getGameID() {
         return gameID;
     }
+
+    public String getWhiteUsername(){return whiteUsername;}
+
+    public String getBlackUsername(){return blackUsername;}
+
+    public ChessGame getGame() {return game;}
 }

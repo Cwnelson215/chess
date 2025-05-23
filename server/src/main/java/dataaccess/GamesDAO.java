@@ -2,13 +2,14 @@ package dataaccess;
 
 import model.GameData;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public interface GamesDAO {
-    GameData getGame(int gameID);
+    GameData getGame(String gameID);
     GameData createGame(String gameName);
-    Map<Integer, GameData> listGames();
-    void updateGame(GameData game, int gameID);
+    ArrayList<GameData> listGames();
+    void updateGame(GameData game, String gameID);
     void clear();
     boolean isEmpty();
 }

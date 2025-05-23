@@ -1,6 +1,7 @@
 package service;
 
 import model.GameData;
-import java.util.Map;
 
-public record ListGamesResponse(Map<Integer, GameData> games) {}
+import java.util.ArrayList;
+
+public record ListGamesResponse(ArrayList<GameData> games) {}
