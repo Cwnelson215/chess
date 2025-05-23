@@ -20,7 +20,7 @@ class UserServiceTest {
 
     @Test
     public void registerFailure_BadRequest() throws HTTPException {
-        assertThrows(HTTPException.class, () -> service.register(new RegisterRequest(username, password, email)));
+        assertThrows(HTTPException.class, () -> service.register(new RegisterRequest(null, password, email)));
     }
 
     @Test
@@ -87,5 +87,63 @@ class UserServiceTest {
         var result = service.register(new RegisterRequest(username, password, email));
         service.create("game", result.authToken());
         assertThrows(HTTPException.class, () -> service.listGames("Bad Auth"));
+    }
+
+    @Test
+    public void createSuccess() {
+        var result= service.register(new RegisterRequest(username, password, email));
+        var game = service.create("game", result.authToken());
+        assertDoesNotThrow(() -> service.gamesDatabase.getGame(String.valueOf(game.gameID())));
+    }
+
+    @Test
+    public void createFailure_NullGameName() throws HTTPException {
+        var result= service.register(new RegisterRequest(username, password, email));
+        assertThrows(HTTPException.class, () -> service.create(null, result.authToken()));
+    }
+
+    @Test
+    public void createFailure_BadAuthToken() throws HTTPException {
+        assertThrows(HTTPException.class, () -> service.create("new game", "notValidAuthToken"));
+    }
+
+    @Test
+    public void joinSuccess() {
+        var result= service.register(new RegisterRequest(username, password, email));
+        var game = service.create("game", result.authToken());
+
+        assertDoesNotThrow(() -> service.join(new JoinRequest("WHITE", game.gameID()), result.authToken()));
+        assertEquals(username, service.gamesDatabase.getGame(String.valueOf(game.gameID())).getWhiteUsername());
+    }
+
+    @Test
+    public void joinFailure_Bad_GameID() {
+        var result = service.register(new RegisterRequest(username, password, email));
+        assertThrows(HTTPException.class, () -> service.join(new JoinRequest("WHITE", 132), result.authToken()));
+    }
+
+    @Test
+    public void joinFailure_Bad_ColorTaken() {
+        var result= service.register(new RegisterRequest(username, password, email));
+        var game = service.create("game", result.authToken());
+        service.join(new JoinRequest("WHITE", game.gameID()), result.authToken());
+
+        var result2 = service.register(new RegisterRequest("c", "b", "d"));
+        assertThrows(HTTPException.class, () -> service.join(new JoinRequest("WHITE", game.gameID()), result2.authToken()));
+    }
+
+    @Test
+    public void joinFailure_ColorNull() {
+        var result= service.register(new RegisterRequest(username, password, email));
+        var game = service.create("game", result.authToken());
+        assertThrows(HTTPException.class, () -> service.join(new JoinRequest(null, game.gameID()), result.authToken()));
+    }
+
+    @Test
+    public void clearSuccessSingle() {
+        var result= service.register(new RegisterRequest(username, password, email));
+        var game = service.create("game", result.authToken());
+        assertDoesNotThrow(() -> service.clearDataBase());
+        assertTrue(service.authDatabase.isEmpty() && service.gamesDatabase.isEmpty() && service.userDatabase.isEmpty());
     }
 }
