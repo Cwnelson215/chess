@@ -13,7 +13,7 @@ public class UserService {
     AuthDAO authDatabase = new MemoryAuthDAO();
     GamesDAO gamesDatabase = new MemoryGamesDAO();
 
-    public void clearDataBase() throws HTTPException {
+    public void clearDataBase() throws HTTPException, DataAccessException {
         userDatabase.clear();
         authDatabase.clear();
         gamesDatabase.clear();

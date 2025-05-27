@@ -1,5 +1,6 @@
 package service;
 
+import dataaccess.DataAccessException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ class UserServiceTest {
     private String email = "123@456.com";
 
     @Test
-    public void registerSuccess() {
+    public void registerSuccess() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         assertEquals(username, result.username());
         assertNotNull(result.authToken());
@@ -24,13 +25,13 @@ class UserServiceTest {
     }
 
     @Test
-    public void registerFailureUsernameTaken() throws HTTPException {
+    public void registerFailureUsernameTaken() throws HTTPException, DataAccessException {
         service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.register(new RegisterRequest(username, password, email)));
     }
 
     @Test
-    public void logoutSuccess() {
+    public void logoutSuccess() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
 
         assertDoesNotThrow(() -> service.logout(result.authToken()));
@@ -43,7 +44,7 @@ class UserServiceTest {
 
 
     @Test
-    public void loginSuccess() {
+    public void loginSuccess() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
         var newResult = service.login(new LoginRequest(username, password));
@@ -53,7 +54,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void loginFailureUnauthorized()  {
+    public void loginFailureUnauthorized() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
         String username2 = "NotCarter";
@@ -62,7 +63,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void loginFailureBadRequest()  {
+    public void loginFailureBadRequest() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
         String username2 = null;
@@ -71,28 +72,28 @@ class UserServiceTest {
     }
 
     @Test
-    public void listGamesSuccess() {
+    public void listGamesSuccess() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.create("game", result.authToken());
         assertDoesNotThrow(() -> service.listGames(result.authToken()));
     }
 
     @Test
-    public void listGamesFailure() {
+    public void listGamesFailure() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.create("game", result.authToken());
         assertThrows(HTTPException.class, () -> service.listGames("Bad Auth"));
     }
 
     @Test
-    public void createSuccess() {
+    public void createSuccess() throws DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         assertDoesNotThrow(() -> service.gamesDatabase.getGame(String.valueOf(game.gameID())));
     }
 
     @Test
-    public void createFailureNullGameName() throws HTTPException {
+    public void createFailureNullGameName() throws HTTPException, DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.create(null, result.authToken()));
     }
@@ -103,7 +104,7 @@ class UserServiceTest {
     }
 
     @Test
-    public void joinSuccess() {
+    public void joinSuccess() throws DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
 
@@ -112,13 +113,13 @@ class UserServiceTest {
     }
 
     @Test
-    public void joinFailureBadGameID() {
+    public void joinFailureBadGameID() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         assertThrows(HTTPException.class, () -> service.join(new JoinRequest("WHITE", 132), result.authToken()));
     }
 
     @Test
-    public void joinFailureBadColorTaken() {
+    public void joinFailureBadColorTaken() throws DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         service.join(new JoinRequest("WHITE", game.gameID()), result.authToken());
@@ -128,14 +129,14 @@ class UserServiceTest {
     }
 
     @Test
-    public void joinFailureColorNull() {
+    public void joinFailureColorNull() throws DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         assertThrows(HTTPException.class, () -> service.join(new JoinRequest(null, game.gameID()), result.authToken()));
     }
 
     @Test
-    public void clearSuccessSingle() {
+    public void clearSuccessSingle() throws DataAccessException {
         var result= service.register(new RegisterRequest(username, password, email));
         var game = service.create("game", result.authToken());
         assertDoesNotThrow(() -> service.clearDataBase());

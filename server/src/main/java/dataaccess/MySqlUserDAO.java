@@ -32,6 +32,13 @@ public class MySqlUserDAO implements UserDAO{
         return null;
     }
 
+    public UserData getUser(String username, String password) throws DataAccessException {
+        if(verifyPassword(username, password)) {
+            return getUser(username);
+        }
+        return null;
+    }
+
     public void createUser(UserData newUser) throws DataAccessException {
         var statement = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
         var json = new Gson().toJson(newUser);
@@ -40,7 +47,29 @@ public class MySqlUserDAO implements UserDAO{
         executeUpdate(statement, newUser.getUsername(), password, newUser.getEmail(), json);
     }
 
+    public void clear() throws DataAccessException {
+        try(var conn = DatabaseManager.getConnection()) {
+            var statement = "DELETE FROM users";
+            try(var ps = conn.prepareStatement(statement)) {
+                ps.executeUpdate();
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+        }
+    }
 
+    public boolean isEmpty() throws DataAccessException {
+        try(var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT COUNT(*) FROM users";
+            try(var ps = conn.prepareStatement(statement)) {
+                try(var rs = ps.executeQuery()) {
+                    return rs.getInt(1) == 0;
+                }
+            }
+        } catch (Exception e) {
+            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+        }
+    }
 
     private UserData readUser(ResultSet rs) throws SQLException {
         var json = rs.getString("json");
@@ -93,5 +122,27 @@ public class MySqlUserDAO implements UserDAO{
 
     private String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    private boolean verifyPassword(String username, String password) throws DataAccessException {
+        var hashedPassword = getHashedPassword(username);
+        return BCrypt.checkpw(password, hashedPassword);
+    }
+
+    private String getHashedPassword(String username) throws DataAccessException {
+        try(var conn = DatabaseManager.getConnection()) {
+            var statement = "SELECT password FROM users WHERE username=?";
+            try( var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, username);
+                try(var rs = preparedStatement.executeQuery()) {
+                    if(rs.next()) {
+                        return rs.getString("password");
+                    }
+                }
+            }
+        } catch(SQLException e) {
+            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+        }
+        return null;
     }
 }
