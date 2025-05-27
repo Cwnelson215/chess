@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
 import service.*;
@@ -33,7 +34,7 @@ public class Server {
         return Spark.port();
     }
 
-    public Object registerUser(Request req, Response res) throws HTTPException {
+    public Object registerUser(Request req, Response res) throws HTTPException, DataAccessException {
         try {
             RegisterRequest request = new Gson().fromJson(req.body(), RegisterRequest.class);
             var registerResult = userService.register(request);
@@ -41,10 +42,12 @@ public class Server {
         } catch (HTTPException e) {
             res = e.createResponse(res);
             return res.body();
+        } catch (DataAccessException e) {
+            throw e;
         }
     }
 
-    public Object loginUser(Request req, Response res) throws HTTPException {
+    public Object loginUser(Request req, Response res) throws HTTPException, DataAccessException {
         try {
             UserData user = new Gson().fromJson(req.body(), UserData.class);
             var loginResult = userService.login(new LoginRequest(user.getUsername(), user.getPassword()));
@@ -52,6 +55,8 @@ public class Server {
         } catch (HTTPException e) {
             res = e.createResponse(res);
             return res.body();
+        } catch (DataAccessException e) {
+            throw e;
         }
     }
 

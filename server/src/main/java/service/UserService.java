@@ -22,7 +22,7 @@ public class UserService {
         }
     }
 
-    public RegisterResult register(RegisterRequest registerRequest) throws HTTPException {
+    public RegisterResult register(RegisterRequest registerRequest) throws HTTPException, DataAccessException {
         String username = registerRequest.username();
         if(username == null || registerRequest.password() == null || registerRequest.email() == null) {
             throw new HTTPException(400, "Bad Request");
@@ -39,7 +39,7 @@ public class UserService {
         return new RegisterResult(username, userAuth.getAuthToken());
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws HTTPException {
+    public LoginResult login(LoginRequest loginRequest) throws HTTPException, DataAccessException {
         String username = loginRequest.username();
         String password = loginRequest.password();
         var user = userDatabase.getUser(username, password);
