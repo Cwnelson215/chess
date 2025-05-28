@@ -28,7 +28,7 @@ public class MySqlGameDAO implements GamesDAO{
 
     public GameData getGame(String gameID) throws DataAccessException {
         try(var conn = DatabaseManager.getConnection()) {
-            var statement = "SELECT json FROM users WHERE gameID=?";
+            var statement = "SELECT json FROM games WHERE gameID=?";
             try(var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, gameID);
                 try(var rs = ps.executeQuery()) {
@@ -38,7 +38,7 @@ public class MySqlGameDAO implements GamesDAO{
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -52,7 +52,9 @@ public class MySqlGameDAO implements GamesDAO{
     }
 
     public void updateGame(GameData game, String gameID)  throws DataAccessException {
-
+        var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, json=? WHERE gameID=?";
+        var json = new Gson().toJson(game);
+        updater.executeUpdate(statement, game.getWhiteUsername(), game.getBlackUsername(), json, gameID);
     }
 
     public ArrayList<GameData> listGames() throws DataAccessException {
@@ -68,7 +70,7 @@ public class MySqlGameDAO implements GamesDAO{
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -79,7 +81,7 @@ public class MySqlGameDAO implements GamesDAO{
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -88,11 +90,11 @@ public class MySqlGameDAO implements GamesDAO{
             var statement = "SELECT COUNT(*) FROM games";
             try(var ps = conn.prepareStatement(statement)) {
                 try(var rs = ps.executeQuery()) {
-                    return rs.getInt(1) == 0;
+                    return rs.next();
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 

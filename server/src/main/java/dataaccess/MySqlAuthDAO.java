@@ -14,8 +14,8 @@ public class MySqlAuthDAO implements AuthDAO{
         String[] createStatements = {
                 """
             CREATE TABLE IF NOT EXISTS auths (
-                `username` varchar NOT NULL,
-                `authToken` varchar NOT NULL,
+                `username` varchar(256) NOT NULL,
+                `authToken` varchar(256) NOT NULL,
                 `json` TEXT DEFAULT NULL,
                 PRIMARY KEY (`authToken`)
             )
@@ -37,7 +37,7 @@ public class MySqlAuthDAO implements AuthDAO{
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -54,7 +54,7 @@ public class MySqlAuthDAO implements AuthDAO{
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -70,10 +70,10 @@ public class MySqlAuthDAO implements AuthDAO{
             var statement = "DELETE FROM auths WHERE authToken=?";
             try(var ps = conn.prepareStatement(statement)) {
                 ps.setString(1, authToken);
-                ps.executeQuery();
+                ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -84,7 +84,7 @@ public class MySqlAuthDAO implements AuthDAO{
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -93,11 +93,11 @@ public class MySqlAuthDAO implements AuthDAO{
             var statement = "SELECT COUNT(*) FROM auths";
             try(var ps = conn.prepareStatement(statement)) {
                 try(var rs = ps.executeQuery()) {
-                    return rs.getInt(1) == 0;
+                    return rs.next();
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 

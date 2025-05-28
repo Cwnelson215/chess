@@ -40,7 +40,7 @@ public class MySqlUserDAO implements UserDAO{
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
     }
@@ -53,9 +53,10 @@ public class MySqlUserDAO implements UserDAO{
     }
 
     public void createUser(UserData newUser) throws DataAccessException {
-        var statement = "INSERT INTO users (username, password, email, json) VALUES (?, ?, ?)";
-        var json = new Gson().toJson(newUser);
         String password = hashPassword(newUser.getPassword());
+        UserData user = new UserData(newUser.getUsername(), password, newUser.getEmail());
+        var statement = "INSERT INTO users (username, password, email, json) VALUES (?, ?, ?, ?)";
+        var json = new Gson().toJson(user);
 
         updater.executeUpdate(statement, newUser.getUsername(), password, newUser.getEmail(), json);
     }
@@ -67,7 +68,7 @@ public class MySqlUserDAO implements UserDAO{
                 ps.executeUpdate();
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -76,11 +77,11 @@ public class MySqlUserDAO implements UserDAO{
             var statement = "SELECT COUNT(*) FROM users";
             try(var ps = conn.prepareStatement(statement)) {
                 try(var rs = ps.executeQuery()) {
-                    return rs.getInt(1) == 0;
+                    return rs.next();
                 }
             }
         } catch (Exception e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
     }
 
@@ -95,7 +96,10 @@ public class MySqlUserDAO implements UserDAO{
 
     private boolean verifyPassword(String username, String password) throws DataAccessException {
         var hashedPassword = getHashedPassword(username);
-        return BCrypt.checkpw(password, hashedPassword);
+        if(hashedPassword != null) {
+            return BCrypt.checkpw(password, hashedPassword);
+        }
+        return false;
     }
 
     private String getHashedPassword(String username) throws DataAccessException {
@@ -110,7 +114,7 @@ public class MySqlUserDAO implements UserDAO{
                 }
             }
         } catch(SQLException e) {
-            throw new DataAccessException(String.format("enable to read data: %s", e.getMessage()));
+            throw new DataAccessException(String.format("unable to read data: %s", e.getMessage()));
         }
         return null;
     }
