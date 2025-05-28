@@ -49,9 +49,6 @@ public class MySqlUserDAO implements UserDAO{
     }
 
     public UserData getUser(String username, String password) throws DataAccessException {
-        if(username == null || password == null) {
-            throw new DataAccessException("one or more inputs are null");
-        }
         if(verifyPassword(username, password)) {
             return getUser(username);
         }

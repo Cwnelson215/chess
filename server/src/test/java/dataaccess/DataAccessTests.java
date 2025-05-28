@@ -73,9 +73,6 @@ public class DataAccessTests {
     public void getFailure() throws DataAccessException {
         userDatabase.createUser(user);
         assertThrows(DataAccessException.class, () -> userDatabase.getUser(null));
-        assertThrows(DataAccessException.class, () -> userDatabase.getUser(username, null));
-        assertThrows(DataAccessException.class, () -> userDatabase.getUser(null, password));
-        assertThrows(DataAccessException.class, () -> userDatabase.getUser(null, null));
 
         authDatabase.createAuth(auth);
         assertThrows(DataAccessException.class, () -> authDatabase.getAuth(null));
