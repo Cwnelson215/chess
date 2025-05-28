@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.DataAccessException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,6 +12,13 @@ class UserServiceTest {
     private String username = "Carter";
     private String password = "1234";
     private String email = "123@456.com";
+
+
+
+    @BeforeEach
+    public void clear(){
+        service.clearDataBase();
+    }
 
     @Test
     public void registerSuccess() throws DataAccessException {
