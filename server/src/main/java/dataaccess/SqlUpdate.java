@@ -10,8 +10,8 @@ public class SqlUpdate {
             try(var ps = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for(int i = 0; i < params.length; i++) {
                     var param = params[i];
-                    if(param instanceof String p) ps.setString(i + 1, p);
-                    if(param == null) ps.setString(i + 1, null);
+                    if(param instanceof String p) {ps.setString(i + 1, p);}
+                    if(param == null) {ps.setString(i + 1, null);}
                 }
                 ps.executeUpdate();
 
