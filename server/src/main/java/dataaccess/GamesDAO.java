@@ -6,10 +6,10 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public interface GamesDAO {
-    GameData getGame(String gameID);
-    GameData createGame(String gameName);
-    ArrayList<GameData> listGames();
-    void updateGame(GameData game, String gameID);
-    void clear();
-    boolean isEmpty();
+    GameData getGame(String gameID) throws DataAccessException;
+    GameData createGame(String gameName) throws DataAccessException;
+    ArrayList<GameData> listGames()  throws DataAccessException;
+    void updateGame(GameData game, String gameID)  throws DataAccessException;
+    void clear()  throws DataAccessException;
+    boolean isEmpty()  throws DataAccessException;
 }

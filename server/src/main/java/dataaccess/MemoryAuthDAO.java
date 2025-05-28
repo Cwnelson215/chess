@@ -3,8 +3,6 @@ package dataaccess;
 import model.AuthData;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class MemoryAuthDAO implements AuthDAO {
     private final Map<String, AuthData> auths = new HashMap<>(1);

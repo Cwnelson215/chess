@@ -60,7 +60,7 @@ public class Server {
         }
     }
 
-    public Object logoutUser(Request req, Response res) throws HTTPException {
+    public Object logoutUser(Request req, Response res) throws HTTPException, DataAccessException {
         try {
             String authToken = req.headers("authorization");
             var logoutResult = userService.logout(authToken);
@@ -71,7 +71,7 @@ public class Server {
         }
     }
 
-    public Object clearData(Request req, Response res) {
+    public Object clearData(Request req, Response res) throws DataAccessException {
         try {
             userService.clearDataBase();
             return new Gson().toJson(null);
@@ -81,7 +81,7 @@ public class Server {
         }
     }
 
-    public Object gamesList(Request req, Response res) throws HTTPException {
+    public Object gamesList(Request req, Response res) throws HTTPException, DataAccessException{
         try {
             String authToken = req.headers("authorization");
             var gamesList = userService.listGames(authToken);
@@ -104,7 +104,7 @@ public class Server {
         }
     }
 
-    public Object joinGame(Request req, Response res) throws HTTPException {
+    public Object joinGame(Request req, Response res) throws HTTPException, DataAccessException {
         try {
             String authToken = req.headers("authorization");
             JoinRequest joinRequest = new Gson().fromJson(req.body(), JoinRequest.class);

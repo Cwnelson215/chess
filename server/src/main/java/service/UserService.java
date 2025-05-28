@@ -4,8 +4,6 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import java.util.ArrayList;
-import java.util.Map;
 import java.util.Objects;
 
 public class UserService {
@@ -55,18 +53,18 @@ public class UserService {
         return new LoginResult(username, auth.getAuthToken());
     }
 
-    public Object logout(String authToken) throws HTTPException {
+    public Object logout(String authToken) throws HTTPException, DataAccessException {
         checkAuthorization(authToken);
         authDatabase.deleteAuth(authToken);
         return null;
     }
 
-    public ListGamesResponse listGames(String authToken) throws HTTPException {
+    public ListGamesResponse listGames(String authToken) throws HTTPException, DataAccessException {
         checkAuthorization(authToken);
         return new ListGamesResponse(gamesDatabase.listGames());
     }
 
-    public CreateResponse create(String gameName, String authToken) throws HTTPException {
+    public CreateResponse create(String gameName, String authToken) throws HTTPException, DataAccessException {
         if(gameName == null) {
             throw new HTTPException(400, "Bad Request");
         }
@@ -75,7 +73,7 @@ public class UserService {
         return new CreateResponse(Integer.parseInt(newGame.getGameID()));
     }
 
-    public void join(JoinRequest joinRequest, String authToken) throws HTTPException {
+    public void join(JoinRequest joinRequest, String authToken) throws HTTPException, DataAccessException {
         checkAuthorization(authToken);
         String username = authDatabase.getUsername(authToken);
         GameData game = gamesDatabase.getGame(String.valueOf(joinRequest.gameID()));
@@ -93,7 +91,7 @@ public class UserService {
         gamesDatabase.updateGame(game, String.valueOf(joinRequest.gameID()));
     }
 
-    public void checkAuthorization(String authToken) throws HTTPException {
+    public void checkAuthorization(String authToken) throws HTTPException, DataAccessException {
         var auth = authDatabase.getAuth(authToken);
         if (auth == null) {
             throw new HTTPException(401, "Unauthorized");
