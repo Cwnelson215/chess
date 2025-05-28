@@ -29,6 +29,9 @@ public class MySqlUserDAO implements UserDAO{
     }
 
     public UserData getUser(String username) throws DataAccessException {
+        if(username == null) {
+            throw new DataAccessException("input null");
+        }
         try(var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT username, json FROM users WHERE username=?";
             try(var ps = conn.prepareStatement(statement)) {
@@ -46,6 +49,9 @@ public class MySqlUserDAO implements UserDAO{
     }
 
     public UserData getUser(String username, String password) throws DataAccessException {
+        if(username == null || password == null) {
+            throw new DataAccessException("one or more inputs are null");
+        }
         if(verifyPassword(username, password)) {
             return getUser(username);
         }

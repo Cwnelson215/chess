@@ -27,6 +27,9 @@ public class MySqlGameDAO implements GamesDAO{
     }
 
     public GameData getGame(String gameID) throws DataAccessException {
+        if(gameID == null) {
+            throw new DataAccessException("null input");
+        }
         try(var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT json FROM games WHERE gameID=?";
             try(var ps = conn.prepareStatement(statement)) {
@@ -44,6 +47,9 @@ public class MySqlGameDAO implements GamesDAO{
     }
 
     public GameData createGame(String gameName) throws DataAccessException {
+        if(gameName == null) {
+            throw new DataAccessException("null input");
+        }
         GameData gameData = new GameData(gameName);
         var statement = "INSERT INTO games (gameID, gameName, json) VALUES (?, ?, ?)";
         var json = new Gson().toJson(gameData);
@@ -52,6 +58,9 @@ public class MySqlGameDAO implements GamesDAO{
     }
 
     public void updateGame(GameData game, String gameID)  throws DataAccessException {
+        if(game == null || gameID == null) {
+            throw new DataAccessException("one or more inputs is null");
+        }
         var statement = "UPDATE games SET whiteUsername=?, blackUsername=?, json=? WHERE gameID=?";
         var json = new Gson().toJson(game);
         updater.executeUpdate(statement, game.getWhiteUsername(), game.getBlackUsername(), json, gameID);

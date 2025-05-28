@@ -26,6 +26,9 @@ public class MySqlAuthDAO implements AuthDAO{
     }
 
     public AuthData getAuth(String authToken) throws DataAccessException {
+        if(authToken == null) {
+            throw new DataAccessException("null input");
+        }
         try(var conn = DatabaseManager.getConnection()) {
             var statement = "SELECT authToken, json FROM auths WHERE authToken=?";
             try(var ps = conn.prepareStatement(statement)) {
@@ -60,12 +63,18 @@ public class MySqlAuthDAO implements AuthDAO{
     }
 
     public void createAuth(AuthData newAuth) throws DataAccessException {
+        if(newAuth == null) {
+            throw new DataAccessException("null input");
+        }
         var statement = "INSERT INTO auths (authToken, username, json) VALUES (?, ?, ?)";
         var json = new Gson().toJson(newAuth);
         updater.executeUpdate(statement, newAuth.getAuthToken(), newAuth.getUsername(), json);
     }
 
     public void deleteAuth(String authToken) throws DataAccessException {
+        if(authToken == null) {
+            throw new DataAccessException("null input");
+        }
         try(var conn = DatabaseManager.getConnection()) {
             var statement = "DELETE FROM auths WHERE authToken=?";
             try(var ps = conn.prepareStatement(statement)) {
