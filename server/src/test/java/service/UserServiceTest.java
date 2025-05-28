@@ -1,7 +1,6 @@
 package service;
 
 import dataaccess.DataAccessException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -9,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserServiceTest {
     UserService service = new UserService();
-    private String username = "Carter";
-    private String password = "1234";
-    private String email = "123@456.com";
+    private final String username = "Carter";
+    private final String password = "1234";
+    private final String email = "123@456.com";
 
 
 
@@ -74,9 +73,8 @@ class UserServiceTest {
     public void loginFailureBadRequest() throws DataAccessException {
         var result = service.register(new RegisterRequest(username, password, email));
         service.logout(result.authToken());
-        String username2 = null;
 
-        assertThrows(HTTPException.class, () -> service.login(new LoginRequest(username2, password)));
+        assertThrows(HTTPException.class, () -> service.login(new LoginRequest(null, password)));
     }
 
     @Test
@@ -145,8 +143,6 @@ class UserServiceTest {
 
     @Test
     public void clearSuccessSingle() throws DataAccessException {
-        var result= service.register(new RegisterRequest(username, password, email));
-        var game = service.create("game", result.authToken());
         assertDoesNotThrow(() -> service.clearDataBase());
         assertTrue(service.authDatabase.isEmpty() && service.gamesDatabase.isEmpty() && service.userDatabase.isEmpty());
     }
