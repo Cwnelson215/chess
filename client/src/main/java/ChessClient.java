@@ -21,7 +21,8 @@ public class ChessClient {
             return switch (cmd) {
                 case "register" -> register(params);
                 case "login" -> login(params);
-
+                case "logout" -> logout();
+                case "quit" -> "quit";
                 default -> help();
             };
         } catch (ResponseException e) {
@@ -47,6 +48,13 @@ public class ChessClient {
         throw new ResponseException(400, "Expected: <username> <password>");
     }
 
+    public String logout() throws ResponseException {
+        checkState();
+        state = State.LOGGEDOUT;
+        server.logout();
+        return "Successfully logged out! Have a nice day!";
+    }
+
     public String help() {
         if(state == State.LOGGEDOUT) {
             return """
@@ -64,5 +72,11 @@ public class ChessClient {
                 - join <ID> [WHITE|BLACK]
                 - observe <ID>
                 """;
+    }
+
+    public void checkState() throws ResponseException {
+        if(state != State.LOGGEDIN) {
+            throw new ResponseException(400, "must be logged in to logout");
+        }
     }
 }
