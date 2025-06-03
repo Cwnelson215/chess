@@ -6,6 +6,7 @@ import java.util.Locale;
 public class ChessClient {
     private final ServerFacade server;
     private final String serverUrl;
+    private String authToken = null;
     private State state = State.LOGGEDOUT;
 
     public ChessClient(String serverUrl) {
@@ -22,6 +23,7 @@ public class ChessClient {
                 case "register" -> register(params);
                 case "login" -> login(params);
                 case "logout" -> logout();
+                case "create" -> create(params);
                 case "quit" -> "quit";
                 default -> help();
             };
@@ -34,7 +36,8 @@ public class ChessClient {
         if(params.length >= 1) {
             state = State.LOGGEDIN;
             var result = server.register(new UserData(params[0], params[1], params[2]));
-            return String.format("Logged in as %s", result.toString());
+            authToken = result.getAuthToken();
+            return String.format("Logged in as %s", result.getUsername());
         }
         throw new ResponseException(400, "Expected: <username> <password> <email>");
     }
@@ -43,6 +46,7 @@ public class ChessClient {
         if(params.length >= 1) {
             state = State.LOGGEDIN;
             var result = server.login(new UserData(params[0], params[1], params[2]));
+            authToken = result.getAuthToken();
             return String.format("You logged in as %s", result.getUsername());
         }
         throw new ResponseException(400, "Expected: <username> <password>");
@@ -51,8 +55,17 @@ public class ChessClient {
     public String logout() throws ResponseException {
         checkState();
         state = State.LOGGEDOUT;
-        server.logout();
+        server.logout(authToken);
         return "Successfully logged out! Have a nice day!";
+    }
+
+    public String create(String...params) throws ResponseException {
+        if(params.length > 1) {
+            throw new ResponseException(400, "Too many arguments given for create command; only a name is required");
+        }
+        checkState();
+        server.createGame(params[0]);
+        return String.format("Game created! Don't forget to join it?");
     }
 
     public String help() {
@@ -76,7 +89,7 @@ public class ChessClient {
 
     public void checkState() throws ResponseException {
         if(state != State.LOGGEDIN) {
-            throw new ResponseException(400, "must be logged in to logout");
+            throw new ResponseException(400, "must be logged in to perform this action");
         }
     }
 }

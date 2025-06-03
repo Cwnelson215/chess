@@ -1,13 +1,10 @@
+import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import server.Server;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class ServerFacadeTests {
@@ -21,7 +18,7 @@ public class ServerFacadeTests {
         server = new Server();
         var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        facade = new ServerFacade(Integer.toString(port));
+        facade = new ServerFacade(String.format("http://localhost:%d", port));
     }
 
     @AfterAll
@@ -29,6 +26,10 @@ public class ServerFacadeTests {
         server.stop();
     }
 
+    @BeforeEach
+    public void clear() throws DataAccessException {
+        server.clearData(null, null);
+    }
 
     @Test
     public void sampleTest() {
@@ -40,6 +41,18 @@ public class ServerFacadeTests {
         var auth = facade.register(user);
         assertNotNull(auth);
         assertTrue(auth.getAuthToken().length() > 10);
+    }
+
+    @Test
+    public void logoutSuccess() throws ResponseException {
+        var auth = facade.register(user);
+        var result = facade.logout(auth.getAuthToken());
+        assertNull(result);
+    }
+
+    @Test
+    public void loginSuccess() throws ResponseException {
+
     }
 
 }

@@ -55,14 +55,12 @@ public class Server {
         } catch (HTTPException e) {
             res = e.createResponse(res);
             return res.body();
-        } catch (DataAccessException e) {
-            throw e;
         }
     }
 
     public Object logoutUser(Request req, Response res) throws HTTPException, DataAccessException {
         try {
-            String authToken = req.headers("authorization");
+            String authToken = req.body();
             var logoutResult = userService.logout(authToken);
             return new Gson().toJson(logoutResult);
         } catch (HTTPException e) {

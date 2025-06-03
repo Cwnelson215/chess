@@ -26,9 +26,9 @@ public class ServerFacade {
         return this.makeRequest("POST", path, user, AuthData.class);
     }
 
-    public Object logout() throws ResponseException {
+    public Object logout(String authToken) throws ResponseException {
         var path = "/session";
-        return this.makeRequest("DELETE", path, null, null);
+        return this.makeRequest("DELETE", path, authToken, null);
     }
 
     public GameData[] listGames() throws ResponseException {
@@ -38,10 +38,10 @@ public class ServerFacade {
         return response.games;
     }
 
-    public int createGame() throws ResponseException {
+    public int createGame(String gameName) throws ResponseException {
         var path = "/game";
         record createResponse(int gameID) {}
-        var result = this.makeRequest("POST", path, null, createResponse.class);
+        var result = this.makeRequest("POST", path, gameName, createResponse.class);
         return result.gameID;
     }
 
@@ -75,6 +75,7 @@ public class ServerFacade {
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {
         if(request != null) {
             http.addRequestProperty("Content-Type", "application/json");
+            http.addRequestProperty("authorization", request.toString());
             String reqData = new Gson().toJson(request);
             try(OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());
