@@ -41,8 +41,9 @@ public class ServerFacade {
 
     public int createGame(String gameName, String authToken) throws ResponseException {
         var path = "/game";
+        record createRequest(String gameName) {}
         record createResponse(int gameID) {}
-        var result = this.makeRequest("POST", path, gameName, createResponse.class, authToken);
+        var result = this.makeRequest("POST", path, new createRequest(gameName), createResponse.class, authToken);
         return result.gameID;
     }
 

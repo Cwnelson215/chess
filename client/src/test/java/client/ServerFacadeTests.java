@@ -76,4 +76,16 @@ public class ServerFacadeTests {
         assertThrows(ResponseException.class, () -> facade.login(user.getUsername(), "wrong"));
     }
 
+    @Test
+    public void createSuccess() throws ResponseException {
+        var auth = facade.register(user);
+        var gameID = facade.createGame("newGame", auth.getAuthToken());
+        assertTrue(gameID > 999);
+    }
+
+    @Test
+    public void createFailure() throws ResponseException {
+        assertThrows(ResponseException.class, () -> facade.createGame("game", "not authorized"));
+    }
+
 }
