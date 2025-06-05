@@ -100,12 +100,15 @@ public class ChessClient {
         checkState();
         var list = server.listGames(authToken);
         StringBuilder sb = new StringBuilder();
+        int i = 1;
         for(GameData game : list) {
+            sb.append(i).append(". ");
             sb.append("Name:");
             sb.append(game.getGameName());
             sb.append("   ID:");
             sb.append(game.getGameID());
             sb.append("\n");
+            i++;
         }
         return sb.toString();
     }

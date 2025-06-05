@@ -1,7 +1,6 @@
 import java.util.Scanner;
 
-import static ui.EscapeSequences.RESET_TEXT_UNDERLINE;
-import static ui.EscapeSequences.SET_TEXT_COLOR_GREEN;
+import static ui.EscapeSequences.*;
 
 public class Repl {
     private final ChessClient client;
@@ -12,6 +11,7 @@ public class Repl {
 
     public void run() {
         System.out.println(RESET_TEXT_UNDERLINE + client.help());
+        System.out.printf("[%s]>>> ", client.getState());
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
@@ -20,6 +20,10 @@ public class Repl {
             try {
                 result = client.eval(line);
                 System.out.println(SET_TEXT_COLOR_GREEN + result);
+                System.out.println();
+                if(!result.equals("Goodbye! \uD83D\uDE0A")) {
+                    System.out.printf(SET_TEXT_COLOR_BLUE + "[%s]>>> ", client.getState());
+                }
             } catch (Exception e) {
                 var message = e.getMessage();
                 System.out.println(message);
