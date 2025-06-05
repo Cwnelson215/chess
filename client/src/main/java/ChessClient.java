@@ -25,6 +25,7 @@ public class ChessClient {
                 case "logout" -> logout();
                 case "create" -> create(params);
                 case "join" -> join(params);
+                case "list" -> list();
                 case "quit" -> "Goodbye! \uD83D\uDE0A";
                 default -> help();
             };
@@ -78,9 +79,10 @@ public class ChessClient {
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
 
-    public GameData[] list(String...params) throws ResponseException {
+    public String list() throws ResponseException {
         checkState();
-        return server.listGames(authToken);
+        var list = server.listGames(authToken);
+        return list.toString();
     }
 
     public String help() {

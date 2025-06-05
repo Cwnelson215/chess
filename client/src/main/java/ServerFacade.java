@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.*;
+import java.util.ArrayList;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -35,7 +36,7 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws ResponseException {
         var path = "/game";
         record listGamesResponse(GameData[] games) {}
-        var response = this.makeRequest("GET", path, authToken, listGamesResponse.class, authToken);
+        var response = this.makeRequest("GET", path, null, listGamesResponse.class, authToken);
         return response.games;
     }
 
@@ -101,7 +102,7 @@ public class ServerFacade {
 
     private static <T> T readBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
         T response = null;
-        if(http.getContentLength() < 8) {
+        if(http.getContentLength() < 0) {
             try(InputStream respBody = http.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
                 if(responseClass != null) {

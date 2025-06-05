@@ -1,8 +1,11 @@
 import dataaccess.DataAccessException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -44,7 +47,7 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void registerFailure() throws ResponseException {
+    public void registerFailure() {
         assertThrows(ResponseException.class, () -> facade.register(new UserData(null, null, null)));
     }
 
@@ -84,8 +87,16 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void createFailure() throws ResponseException {
+    public void createFailure() {
         assertThrows(ResponseException.class, () -> facade.createGame("game", "not authorized"));
+    }
+
+    @Test
+    public void listGamesSuccess() throws ResponseException {
+        var auth = facade.register(user);
+        facade.createGame("game", auth.getAuthToken());
+        GameData[] games = facade.listGames(auth.getAuthToken());
+        assertNotNull(games);
     }
 
 }
