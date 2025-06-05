@@ -1,10 +1,11 @@
 import java.util.Scanner;
+
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
-public class PreLoginRepl {
+public class PostLoginRepl {
     private final ChessClient client;
 
-    public PreLoginRepl(ChessClient client) {
+    public PostLoginRepl(ChessClient client) {
         this.client = client;
     }
 

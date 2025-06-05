@@ -60,7 +60,7 @@ public class Server {
 
     public Object logoutUser(Request req, Response res) throws HTTPException, DataAccessException {
         try {
-            String authToken = req.body();
+            String authToken = req.headers("authorization");
             var logoutResult = userService.logout(authToken);
             return new Gson().toJson(logoutResult);
         } catch (HTTPException e) {
