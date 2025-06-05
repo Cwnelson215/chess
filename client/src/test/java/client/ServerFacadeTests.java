@@ -44,6 +44,11 @@ public class ServerFacadeTests {
     }
 
     @Test
+    public void registerFailure() throws ResponseException {
+        assertThrows(ResponseException.class, () -> facade.register(new UserData(null, null, null)));
+    }
+
+    @Test
     public void logoutSuccess() throws ResponseException {
         var auth = facade.register(user);
         var result = facade.logout(auth.getAuthToken());
@@ -51,8 +56,24 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void loginSuccess() throws ResponseException {
+    public void logoutFailure() throws ResponseException {
+        facade.register(user);
+        assertThrows(ResponseException.class, () -> facade.logout("incorrect-auth"));
+    }
 
+    @Test
+    public void loginSuccess() throws ResponseException {
+        var auth = facade.register(user);
+        facade.logout(auth.getAuthToken());
+        var newAuth = facade.login(user.getUsername(), user.getPassword());
+        assertNotEquals(auth.getAuthToken(), newAuth.getAuthToken());
+    }
+
+    @Test
+    public void loginFailure() throws ResponseException {
+        var auth = facade.register(user);
+        facade.logout(auth.getAuthToken());
+        assertThrows(ResponseException.class, () -> facade.login(user.getUsername(), "wrong"));
     }
 
 }

@@ -46,7 +46,7 @@ public class ChessClient {
     public String login(String...params) throws ResponseException {
         if(params.length >= 1) {
             state = State.LOGGEDIN;
-            var result = server.login(new UserData(params[0], params[1], params[2]));
+            var result = server.login(params[0], params[1]);
             authToken = result.getAuthToken();
             return String.format("You logged in as %s", result.getUsername());
         }
@@ -65,7 +65,7 @@ public class ChessClient {
             throw new ResponseException(400, "Too many arguments given for create command; only a name is required");
         }
         checkState();
-        server.createGame(params[0]);
+        server.createGame(params[0], authToken);
         return "Game created! Don't forget to join!";
     }
 
@@ -80,7 +80,7 @@ public class ChessClient {
 
     public GameData[] list(String...params) throws ResponseException {
         checkState();
-        return server.listGames();
+        return server.listGames(authToken);
     }
 
     public String help() {
