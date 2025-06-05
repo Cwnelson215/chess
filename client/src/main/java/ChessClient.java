@@ -1,7 +1,7 @@
+import model.GameData;
 import model.UserData;
 
 import java.util.Arrays;
-import java.util.Locale;
 
 public class ChessClient {
     private final ServerFacade server;
@@ -24,7 +24,8 @@ public class ChessClient {
                 case "login" -> login(params);
                 case "logout" -> logout();
                 case "create" -> create(params);
-                case "quit" -> "quit";
+                case "join" -> join(params);
+                case "quit" -> "Goodbye! \uD83D\uDE0A";
                 default -> help();
             };
         } catch (ResponseException e) {
@@ -65,16 +66,30 @@ public class ChessClient {
         }
         checkState();
         server.createGame(params[0]);
-        return String.format("Game created! Don't forget to join it?");
+        return "Game created! Don't forget to join!";
+    }
+
+    public String join(String...params) throws ResponseException {
+        if(params.length == 2) {
+            checkState();
+            server.joinGame(params[0], Integer.parseInt(params[1]), authToken);
+            return "You've joined a game!";
+        }
+        throw new ResponseException(400, "two arguments expected, playerColor and gameID");
+    }
+
+    public GameData[] list(String...params) throws ResponseException {
+        checkState();
+        return server.listGames();
     }
 
     public String help() {
         if(state == State.LOGGEDOUT) {
             return """
                     - help
-                    - quit
                     - login <USERNAME> <PASSWORD>
                     - register <USERNAME> <PASSWORD> <EMAIL>
+                    - quit
                     """;
         }
         return """
@@ -85,6 +100,10 @@ public class ChessClient {
                 - join <ID> [WHITE|BLACK]
                 - observe <ID>
                 """;
+    }
+
+    public String getState() {
+        return state.toString();
     }
 
     public void checkState() throws ResponseException {

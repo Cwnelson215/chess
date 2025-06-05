@@ -45,10 +45,10 @@ public class ServerFacade {
         return result.gameID;
     }
 
-    public Object joinGame(String playerColor, int gameID) throws ResponseException {
+    public Object joinGame(String playerColor, int gameID, String authToken) throws ResponseException {
         var path = "/game";
-        record joinRequest(String playerColor, int gameID) {}
-        var joinReq = new joinRequest(playerColor, gameID);
+        record joinRequest(String playerColor, int gameID, String authToken) {}
+        var joinReq = new joinRequest(playerColor, gameID, authToken);
         return this.makeRequest("PUT", path, joinReq, null);
     }
 
@@ -75,7 +75,6 @@ public class ServerFacade {
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {
         if(request != null) {
             http.addRequestProperty("Content-Type", "application/json");
-            http.addRequestProperty("authorization", request.toString());
             String reqData = new Gson().toJson(request);
             try(OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());
