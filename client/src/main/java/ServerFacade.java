@@ -25,7 +25,11 @@ public class ServerFacade {
     public AuthData login(String username, String password) throws ResponseException {
         var path = "/session";
         record loginRequest(String username, String password) {}
-        return this.makeRequest("POST", path, new loginRequest(username, password), AuthData.class, null);
+        try {
+            return this.makeRequest("POST", path, new loginRequest(username, password), AuthData.class, null);
+        } catch(Exception e) {
+            throw new ResponseException(400, e.getMessage());
+        }
     }
 
     public Object logout(String authToken) throws ResponseException {
@@ -33,9 +37,9 @@ public class ServerFacade {
         return this.makeRequest("DELETE", path, authToken, null, authToken);
     }
 
-    public GameData[] listGames(String authToken) throws ResponseException {
+    public ArrayList<GameData> listGames(String authToken) throws ResponseException {
         var path = "/game";
-        record listGamesResponse(GameData[] games) {}
+        record listGamesResponse(ArrayList<GameData> games) {}
         var response = this.makeRequest("GET", path, null, listGamesResponse.class, authToken);
         return response.games;
     }
@@ -76,11 +80,11 @@ public class ServerFacade {
     }
 
     private static void writeBody(Object request, HttpURLConnection http, String authToken) throws IOException {
+        if(authToken != null) {
+            http.setRequestProperty("authorization", authToken);
+        }
         if(request != null) {
             http.addRequestProperty("Content-Type", "application/json");
-            if(authToken != null) {
-                http.setRequestProperty("authorization", authToken);
-            }
             String reqData = new Gson().toJson(request);
             try(OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());

@@ -35,11 +35,6 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void sampleTest() {
-        assertTrue(true);
-    }
-
-    @Test
     public void registerSuccess() throws ResponseException {
         var auth = facade.register(user);
         assertNotNull(auth);
@@ -80,14 +75,14 @@ public class ServerFacadeTests {
     }
 
     @Test
-    public void createSuccess() throws ResponseException {
+    public void createGameSuccess() throws ResponseException {
         var auth = facade.register(user);
         var gameID = facade.createGame("newGame", auth.getAuthToken());
         assertTrue(gameID > 999);
     }
 
     @Test
-    public void createFailure() {
+    public void createGameFailure() {
         assertThrows(ResponseException.class, () -> facade.createGame("game", "not authorized"));
     }
 
@@ -95,8 +90,33 @@ public class ServerFacadeTests {
     public void listGamesSuccess() throws ResponseException {
         var auth = facade.register(user);
         facade.createGame("game", auth.getAuthToken());
-        GameData[] games = facade.listGames(auth.getAuthToken());
+        ArrayList<GameData> games = facade.listGames(auth.getAuthToken());
         assertNotNull(games);
+    }
+
+    @Test
+    public void listGamesFailure() throws ResponseException {
+        var auth = facade.register(user);
+        facade.createGame("game", auth.getAuthToken());
+        facade.logout(auth.getAuthToken());
+        assertThrows(ResponseException.class, () -> facade.listGames(auth.getAuthToken()));
+    }
+
+    @Test
+    public void joinGameSuccess() throws ResponseException {
+        var auth = facade.register(user);
+        int id = facade.createGame("game", auth.getAuthToken());
+        assertDoesNotThrow(() -> facade.joinGame("WHITE", id, auth.getAuthToken()));
+    }
+
+    @Test
+    public void joinGameFailure() throws ResponseException {
+        UserData newUser = new UserData("aaa", "bbb", "ccc");
+        var auth = facade.register(user);
+        var newAuth = facade.register(newUser);
+        int id = facade.createGame("game", auth.getAuthToken());
+        facade.joinGame("WHITE", id, auth.getAuthToken());
+        assertThrows(ResponseException.class, () -> facade.joinGame("WHITE", id, newAuth.getAuthToken()));
     }
 
 }

@@ -1,3 +1,4 @@
+import model.AuthData;
 import model.GameData;
 import model.UserData;
 
@@ -36,9 +37,9 @@ public class ChessClient {
 
     public String register(String... params) throws ResponseException {
         if(params.length >= 1) {
-            state = State.LOGGEDIN;
             var result = server.register(new UserData(params[0], params[1], params[2]));
             authToken = result.getAuthToken();
+            state = State.LOGGEDIN;
             return String.format("Logged in as %s", result.getUsername());
         }
         throw new ResponseException(400, "Expected: <username> <password> <email>");
@@ -46,9 +47,14 @@ public class ChessClient {
 
     public String login(String...params) throws ResponseException {
         if(params.length >= 1) {
-            state = State.LOGGEDIN;
-            var result = server.login(params[0], params[1]);
+            AuthData result = null;
+            try {
+                result = server.login(params[0], params[1]);
+            } catch(ResponseException e) {
+                return "Error: username or password incorrect";
+            }
             authToken = result.getAuthToken();
+            state = State.LOGGEDIN;
             return String.format("You logged in as %s", result.getUsername());
         }
         throw new ResponseException(400, "Expected: <username> <password>");
@@ -56,8 +62,8 @@ public class ChessClient {
 
     public String logout() throws ResponseException {
         checkState();
-        state = State.LOGGEDOUT;
         server.logout(authToken);
+        state = State.LOGGEDOUT;
         return "Successfully logged out! Have a nice day!";
     }
 
@@ -73,7 +79,18 @@ public class ChessClient {
     public String join(String...params) throws ResponseException {
         if(params.length == 2) {
             checkState();
-            server.joinGame(params[0], Integer.parseInt(params[1]), authToken);
+            try {
+                if(params[0].equals("white")) {
+                    server.joinGame("WHITE", Integer.parseInt(params[1]), authToken);
+                } else if(params[0].equals("black")) {
+                    server.joinGame("BLACK", Integer.parseInt(params[1]), authToken);
+                } else {
+                    throw new ResponseException(400, "incorrect color input");
+                }
+            } catch(ResponseException e) {
+                return "Something went wrong! Try again!";
+            }
+            state = State.INGAME;
             return "You've joined a game!";
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
@@ -82,7 +99,15 @@ public class ChessClient {
     public String list() throws ResponseException {
         checkState();
         var list = server.listGames(authToken);
-        return list.toString();
+        StringBuilder sb = new StringBuilder();
+        for(GameData game : list) {
+            sb.append("Name:");
+            sb.append(game.getGameName());
+            sb.append("   ID:");
+            sb.append(game.getGameID());
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 
     public String help() {
@@ -99,7 +124,7 @@ public class ChessClient {
                 - create <NAME>
                 - logout
                 - list
-                - join <ID> [WHITE|BLACK]
+                - join [WHITE|BLACK] <ID>
                 - observe <ID>
                 """;
     }
