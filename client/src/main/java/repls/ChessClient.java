@@ -138,7 +138,7 @@ public class ChessClient {
     public String observe(String...params) throws ResponseException {
         if(params.length == 1) {
             checkState(State.LOGGEDIN);
-            String id = getGameId(Integer.parseInt(params[1]));
+            String id = getGameId(Integer.parseInt(params[0]));
             try {
                 server.joinGame("observer", Integer.parseInt(id), authToken);
             } catch(ResponseException e) {
