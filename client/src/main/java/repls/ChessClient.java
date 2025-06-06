@@ -124,6 +124,9 @@ public class ChessClient {
         checkParams("list", params);
         checkState(State.LOGGEDIN);
         var list = server.listGames(authToken);
+        if(list.isEmpty()) {
+            return "No games currently being played";
+        }
         StringBuilder sb = new StringBuilder();
         int i = 1;
         for(GameData game : list) {
@@ -290,8 +293,8 @@ public class ChessClient {
                 }
             }
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
-            for(String col : columns) {
-                sb.append(col);
+            for(int i = 7; i > -1; i--) {
+                sb.append(columns[i]);
             }
             sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         }
