@@ -342,6 +342,6 @@ public class ChessClient {
 
     private String getGameId(int gameNumber) throws ResponseException {
         var games = server.listGames(authToken);
-        return games.get(gameNumber).getGameID();
+        return games.get(gameNumber - 1).getGameID();
     }
 }
