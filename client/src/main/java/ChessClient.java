@@ -12,6 +12,8 @@ public class ChessClient {
     private final String serverUrl;
     private String authToken = null;
     private State state = State.LOGGEDOUT;
+    String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
+    String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -176,11 +178,8 @@ public class ChessClient {
     }
 
     public String boardBuilder(StringBuilder sb, String s) {
-        String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
-        String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
-            sb.append(SET_BG_COLOR_LIGHT_GREY);
-            sb.append(EMPTY);
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
             sb.append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
                 sb.append(col);
@@ -197,22 +196,17 @@ public class ChessClient {
                     sb.append(SET_BG_COLOR_BLACK + BLACK_BISHOP);
                     sb.append(SET_BG_COLOR_WHITE + BLACK_KNIGHT);
                     sb.append(SET_BG_COLOR_BLACK + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 6) {
                     for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_BLACK + BLACK_PAWN);
-                        sb.append(SET_BG_COLOR_WHITE + BLACK_PAWN);
+                        sb.append(SET_BG_COLOR_BLACK + BLACK_PAWN).append(SET_BG_COLOR_WHITE + BLACK_PAWN);
                     }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 1) {
                     for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_WHITE + WHITE_PAWN);
-                        sb.append(SET_BG_COLOR_BLACK + WHITE_PAWN);
+                        sb.append(SET_BG_COLOR_WHITE + WHITE_PAWN).append(SET_BG_COLOR_BLACK + WHITE_PAWN);
                     }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 0) {
                     sb.append(SET_BG_COLOR_BLACK + WHITE_ROOK);
                     sb.append(SET_BG_COLOR_WHITE + WHITE_KNIGHT);
@@ -222,25 +216,19 @@ public class ChessClient {
                     sb.append(SET_BG_COLOR_WHITE + WHITE_BISHOP);
                     sb.append(SET_BG_COLOR_BLACK + WHITE_KNIGHT);
                     sb.append(SET_BG_COLOR_WHITE + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else {
                     fillEmptyWhite(sb, i);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 }
             }
-            sb.append(SET_BG_COLOR_LIGHT_GREY);
-            sb.append(EMPTY);
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
             for(String col : columns) {
                 sb.append(col);
             }
-            sb.append(EMPTY).append("\n");
-            sb.append(RESET_BG_COLOR);
+            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         } else {
-            sb.append(SET_BG_COLOR_LIGHT_GREY);
-            sb.append(EMPTY);
-            sb.append(SET_TEXT_COLOR_BLUE);
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
                 sb.append(col);
             }
@@ -256,22 +244,17 @@ public class ChessClient {
                     sb.append(SET_BG_COLOR_BLACK + WHITE_BISHOP);
                     sb.append(SET_BG_COLOR_WHITE + WHITE_KNIGHT);
                     sb.append(SET_BG_COLOR_BLACK + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 1) {
                     for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_BLACK + WHITE_PAWN);
-                        sb.append(SET_BG_COLOR_WHITE + WHITE_PAWN);
+                        sb.append(SET_BG_COLOR_BLACK + WHITE_PAWN).append(SET_BG_COLOR_WHITE + WHITE_PAWN);
                     }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 6) {
                     for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_WHITE + BLACK_PAWN);
-                        sb.append(SET_BG_COLOR_BLACK + BLACK_PAWN);
+                        sb.append(SET_BG_COLOR_WHITE + BLACK_PAWN).append(SET_BG_COLOR_BLACK + BLACK_PAWN);
                     }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else if(i == 7) {
                     sb.append(SET_BG_COLOR_BLACK + BLACK_ROOK);
                     sb.append(SET_BG_COLOR_WHITE + BLACK_KNIGHT);
@@ -281,21 +264,17 @@ public class ChessClient {
                     sb.append(SET_BG_COLOR_WHITE + BLACK_BISHOP);
                     sb.append(SET_BG_COLOR_BLACK + BLACK_KNIGHT);
                     sb.append(SET_BG_COLOR_WHITE + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 } else {
                     fillEmptyBlack(sb, i);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]);
-                    sb.append("\n");
+                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
                 }
             }
-            sb.append(SET_BG_COLOR_LIGHT_GREY);
-            sb.append(EMPTY);
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
             for(String col : columns) {
                 sb.append(col);
             }
-            sb.append(EMPTY).append("\n");
-            sb.append(RESET_BG_COLOR);
+            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         }
         return sb.toString();
     }
