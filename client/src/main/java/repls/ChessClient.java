@@ -132,6 +132,12 @@ public class ChessClient {
         for(GameData game : list) {
             sb.append(i).append(". ");
             sb.append(game.getGameName());
+            if(game.getWhiteUsername() != null) {
+                sb.append(String.format(" %s is joined as White", game.getWhiteUsername()));
+            }
+            if(game.getBlackUsername() != null) {
+                sb.append(String.format(" %s is joined as Black", game.getBlackUsername()));
+            }
             sb.append("\n");
             i++;
         }
@@ -141,6 +147,12 @@ public class ChessClient {
     public String observe(String...params) throws ResponseException {
         if(params.length == 1) {
             checkState(State.LOGGEDIN);
+            if(!isInt(params[0])) {
+                throw new ResponseException(400, "Game id should contain only integers");
+            }
+            if(params[0].length() != 1) {
+                throw new ResponseException(400, "Game id should be exactly 1 number long");
+            }
             String id = getGameId(Integer.parseInt(params[0]));
             try {
                 server.joinGame("observer", Integer.parseInt(id), authToken);
