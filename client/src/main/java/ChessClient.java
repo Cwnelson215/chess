@@ -179,8 +179,7 @@ public class ChessClient {
 
     public String boardBuilder(StringBuilder sb, String s) {
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
-            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
-            sb.append(SET_TEXT_COLOR_BLUE);
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
                 sb.append(col);
             }
