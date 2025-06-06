@@ -1,6 +1,10 @@
+package repls;
+
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import serverfacade.ResponseException;
+import serverfacade.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Objects;

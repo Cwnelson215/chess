@@ -1,6 +1,5 @@
-import chess.*;
-
-import java.util.Objects;
+import repls.ChessClient;
+import repls.Repl;
 
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 import static ui.EscapeSequences.SET_TEXT_UNDERLINE;

@@ -1,3 +1,5 @@
+package repls;
+
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
