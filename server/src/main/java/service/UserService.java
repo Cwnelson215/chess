@@ -115,14 +115,12 @@ public class UserService {
             if (game == null) {
                 throw new HTTPException(400, "Bad Request");
             }
-            if (!Objects.equals(joinRequest.playerColor(), "WHITE") &&
-                    !Objects.equals(joinRequest.playerColor(), "BLACK")) {
-                throw new HTTPException(400, "Bad Request");
-            }
             if (game.getColorUsername(joinRequest.playerColor()) != null) {
                 throw new HTTPException(403, "already taken");
             }
-            game.assignPlayerColor(username, joinRequest.playerColor());
+            if(joinRequest.playerColor() != null) {
+                game.assignPlayerColor(username, joinRequest.playerColor());
+            }
             gamesDatabase.updateGame(game, String.valueOf(joinRequest.gameID()));
         } catch(DataAccessException e) {
             throw new HTTPException(500, e.getMessage());

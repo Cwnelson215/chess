@@ -19,7 +19,9 @@ public class Repl {
             String line = scanner.nextLine();
             try {
                 result = client.eval(line);
-                System.out.println(SET_TEXT_COLOR_GREEN + result);
+                System.out.print(SET_TEXT_COLOR_GREEN);
+                System.out.println(result);
+                System.out.print(SET_TEXT_COLOR_GREEN);
                 System.out.println();
                 if(!result.equals("Goodbye! \uD83D\uDE0A")) {
                     System.out.printf(SET_TEXT_COLOR_BLUE + "[%s]>>> ", client.getState());
