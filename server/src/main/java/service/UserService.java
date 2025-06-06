@@ -117,7 +117,7 @@ public class UserService {
                 if (game == null) {
                     throw new HTTPException(400, "Bad Request");
                 }
-                if (game.getColorUsername(joinRequest.playerColor()) != null) {
+                if (game.getColorUsername(joinRequest.playerColor()) != null && !joinRequest.playerColor().equals("observer")) {
                     throw new HTTPException(403, "already taken");
                 }
                 if (!joinRequest.playerColor().equals("observer")) {
