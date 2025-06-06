@@ -23,8 +23,4 @@ class ResponseException extends Exception {
         String message = map.get("message").toString();
         return new ResponseException(status, message);
     }
-
-    public int StatusCode() {
-        return statusCode;
-    }
 }

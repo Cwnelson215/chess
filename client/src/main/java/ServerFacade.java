@@ -24,9 +24,9 @@ public class ServerFacade {
 
     public AuthData login(String username, String password) throws ResponseException {
         var path = "/session";
-        record loginRequest(String username, String password) {}
+        record LoginRequest(String username, String password) {}
         try {
-            return this.makeRequest("POST", path, new loginRequest(username, password), AuthData.class, null);
+            return this.makeRequest("POST", path, new LoginRequest(username, password), AuthData.class, null);
         } catch(Exception e) {
             throw new ResponseException(400, e.getMessage());
         }
@@ -39,23 +39,23 @@ public class ServerFacade {
 
     public ArrayList<GameData> listGames(String authToken) throws ResponseException {
         var path = "/game";
-        record listGamesResponse(ArrayList<GameData> games) {}
-        var response = this.makeRequest("GET", path, null, listGamesResponse.class, authToken);
+        record ListGamesResponse(ArrayList<GameData> games) {}
+        var response = this.makeRequest("GET", path, null, ListGamesResponse.class, authToken);
         return response.games;
     }
 
     public int createGame(String gameName, String authToken) throws ResponseException {
         var path = "/game";
-        record createRequest(String gameName) {}
-        record createResponse(int gameID) {}
-        var result = this.makeRequest("POST", path, new createRequest(gameName), createResponse.class, authToken);
+        record CreateRequest(String gameName) {}
+        record CreateResponse(int gameID) {}
+        var result = this.makeRequest("POST", path, new CreateRequest(gameName), CreateResponse.class, authToken);
         return result.gameID;
     }
 
     public Object joinGame(String playerColor, int gameID, String authToken) throws ResponseException {
         var path = "/game";
-        record joinRequest(String playerColor, int gameID) {}
-        var joinReq = new joinRequest(playerColor, gameID);
+        record JoinRequest(String playerColor, int gameID) {}
+        var joinReq = new JoinRequest(playerColor, gameID);
         return this.makeRequest("PUT", path, joinReq, null, authToken);
     }
 
