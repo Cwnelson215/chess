@@ -32,13 +32,13 @@ public class ChessClient {
             return switch (cmd) {
                 case "register" -> register(params);
                 case "login" -> login(params);
-                case "logout" -> logout();
+                case "logout" -> logout(params);
                 case "create" -> create(params);
                 case "join" -> join(params);
-                case "list" -> list();
+                case "list" -> list(params);
                 case "observe" -> observe(params);
                 case "quit" -> "Goodbye! \uD83D\uDE0A";
-                case "exit" -> exit();
+                case "exit" -> exit(params);
                 default -> help();
             };
         } catch (ResponseException e) {
@@ -47,17 +47,21 @@ public class ChessClient {
     }
 
     public String register(String... params) throws ResponseException {
-        if(params.length >= 1) {
-            var result = server.register(new UserData(params[0], params[1], params[2]));
-            authToken = result.getAuthToken();
-            state = State.LOGGEDIN;
-            return String.format("Logged in as %s", result.getUsername());
+        if(params.length == 3) {
+            try {
+                var result = server.register(new UserData(params[0], params[1], params[2]));
+                authToken = result.getAuthToken();
+                state = State.LOGGEDIN;
+                return String.format("Logged in as %s", result.getUsername());
+            } catch(ResponseException e) {
+                return String.format("Error: username %s is already taken", params[0]);
+            }
         }
-        throw new ResponseException(400, "Expected: <username> <password> <email>");
+        throw new ResponseException(400, "Error: Expected <username> <password> <email> as inputs");
     }
 
     public String login(String...params) throws ResponseException {
-        if(params.length >= 1) {
+        if(params.length == 2) {
             AuthData result = null;
             try {
                 result = server.login(params[0], params[1]);
@@ -68,10 +72,11 @@ public class ChessClient {
             state = State.LOGGEDIN;
             return String.format("You logged in as %s", result.getUsername());
         }
-        throw new ResponseException(400, "Expected: <username> <password>");
+        throw new ResponseException(400, "Error: Expected <username> <password> as inputs");
     }
 
-    public String logout() throws ResponseException {
+    public String logout(String...params) throws ResponseException {
+        checkParams("logout", params);
         checkState(State.LOGGEDIN);
         server.logout(authToken);
         state = State.LOGGEDOUT;
@@ -89,6 +94,13 @@ public class ChessClient {
 
     public String join(String...params) throws ResponseException {
         if(params.length == 2) {
+            String id = params[1];
+            if(id.length() != 4) {
+                throw new ResponseException(400, "Game id should be exactly 4 numbers long");
+            }
+            if(!isInt(id)) {
+                throw new ResponseException(400, "Game id should contain only integers");
+            }
             checkState(State.LOGGEDIN);
             try {
                 if(params[0].equals("white")) {
@@ -96,10 +108,10 @@ public class ChessClient {
                 } else if(params[0].equals("black")) {
                     server.joinGame("BLACK", Integer.parseInt(params[1]), authToken);
                 } else {
-                    throw new ResponseException(400, "incorrect color input");
+                    throw new ResponseException(400, "incorrect color input try again");
                 }
             } catch(ResponseException e) {
-                return "Something went wrong! Try again!";
+                return e.getMessage();
             }
             state = State.INGAME;
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
@@ -108,7 +120,8 @@ public class ChessClient {
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
 
-    public String list() throws ResponseException {
+    public String list(String...params) throws ResponseException {
+        checkParams("list", params);
         checkState(State.LOGGEDIN);
         var list = server.listGames(authToken);
         StringBuilder sb = new StringBuilder();
@@ -140,7 +153,8 @@ public class ChessClient {
         throw new ResponseException(400, "only the game ID is needed");
     }
 
-    public String exit() throws ResponseException {
+    public String exit(String...params) throws ResponseException {
+        checkParams("exit", params);
         checkState(State.INGAME);
         state = State.LOGGEDIN;
         return "Game exited";
@@ -154,14 +168,18 @@ public class ChessClient {
                     - register <USERNAME> <PASSWORD> <EMAIL>
                     - quit
                     """;
+        } else if(state == State.LOGGEDIN) {
+            return """
+                    - help
+                    - create <NAME>
+                    - logout
+                    - list
+                    - join [WHITE|BLACK] <ID>
+                    - observe <ID>
+                    """;
         }
         return """
-                - help
-                - create <NAME>
-                - logout
-                - list
-                - join [WHITE|BLACK] <ID>
-                - observe <ID>
+                - exit
                 """;
     }
 
@@ -306,6 +324,21 @@ public class ChessClient {
                 sb.append(SET_BG_COLOR_BLACK + EMPTY);
                 sb.append(SET_BG_COLOR_WHITE + EMPTY);
             }
+        }
+    }
+
+    public boolean isInt(String s) {
+        try {
+            Integer.parseInt(s);
+            return true;
+        } catch(Exception e) {
+            return false;
+        }
+    }
+
+    public void checkParams(String s, String...params) throws ResponseException{
+        if(params.length > 0) {
+            throw new ResponseException(400, String.format("No inputs required for %s command", s));
         }
     }
 }
