@@ -94,24 +94,24 @@ public class ChessClient {
 
     public String join(String...params) throws ResponseException {
         if(params.length == 2) {
-            String id = params[1];
-            if(id.length() != 4) {
-                throw new ResponseException(400, "Game id should be exactly 4 numbers long");
-            }
-            if(!isInt(id)) {
+            if(!isInt(params[1])) {
                 throw new ResponseException(400, "Game id should contain only integers");
             }
+            if(params[1].length() != 1) {
+                throw new ResponseException(400, "Game id should be exactly 1 number long");
+            }
+            String id = getGameId(Integer.parseInt(params[1]));
             checkState(State.LOGGEDIN);
             try {
                 if(params[0].equals("white")) {
-                    server.joinGame("WHITE", Integer.parseInt(params[1]), authToken);
+                    server.joinGame("WHITE", Integer.parseInt(id), authToken);
                 } else if(params[0].equals("black")) {
-                    server.joinGame("BLACK", Integer.parseInt(params[1]), authToken);
+                    server.joinGame("BLACK", Integer.parseInt(id), authToken);
                 } else {
                     throw new ResponseException(400, "incorrect color input try again");
                 }
             } catch(ResponseException e) {
-                return e.getMessage();
+                return "Your requested color is already taken";
             }
             state = State.INGAME;
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
@@ -128,10 +128,7 @@ public class ChessClient {
         int i = 1;
         for(GameData game : list) {
             sb.append(i).append(". ");
-            sb.append("Name:");
             sb.append(game.getGameName());
-            sb.append("   ID:");
-            sb.append(game.getGameID());
             sb.append("\n");
             i++;
         }
@@ -141,8 +138,9 @@ public class ChessClient {
     public String observe(String...params) throws ResponseException {
         if(params.length == 1) {
             checkState(State.LOGGEDIN);
+            String id = getGameId(Integer.parseInt(params[1]));
             try {
-                server.joinGame("observer", Integer.parseInt(params[0]), authToken);
+                server.joinGame("observer", Integer.parseInt(id), authToken);
             } catch(ResponseException e) {
                 return "Something went wrong";
             }
@@ -250,8 +248,8 @@ public class ChessClient {
             sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         } else {
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
-            for(String col : columns) {
-                sb.append(col);
+            for(int i = 7; i > -1; i--) {
+                sb.append(columns[i]);
             }
             sb.append(EMPTY).append("\n");
             for(int i = 0; i < 8; i++) {
@@ -340,5 +338,10 @@ public class ChessClient {
         if(params.length > 0) {
             throw new ResponseException(400, String.format("No inputs required for %s command", s));
         }
+    }
+
+    private String getGameId(int gameNumber) throws ResponseException {
+        var games = server.listGames(authToken);
+        return games.get(gameNumber).getGameID();
     }
 }
