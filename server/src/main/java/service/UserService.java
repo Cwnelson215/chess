@@ -108,22 +108,27 @@ public class UserService {
     }
 
     public void join(JoinRequest joinRequest, String authToken) throws HTTPException, DataAccessException {
-        try {
-            checkAuthorization(authToken);
-            String username = authDatabase.getUsername(authToken);
-            GameData game = gamesDatabase.getGame(String.valueOf(joinRequest.gameID()));
-            if (game == null) {
-                throw new HTTPException(400, "Bad Request");
+        if(Objects.equals(joinRequest.playerColor(), "WHITE") || Objects.equals(joinRequest.playerColor(), "BLACK")
+        || Objects.equals(joinRequest.playerColor(), "observer")) {
+            try {
+                checkAuthorization(authToken);
+                String username = authDatabase.getUsername(authToken);
+                GameData game = gamesDatabase.getGame(String.valueOf(joinRequest.gameID()));
+                if (game == null) {
+                    throw new HTTPException(400, "Bad Request");
+                }
+                if (game.getColorUsername(joinRequest.playerColor()) != null) {
+                    throw new HTTPException(403, "already taken");
+                }
+                if (!joinRequest.playerColor().equals("observer")) {
+                    game.assignPlayerColor(username, joinRequest.playerColor());
+                }
+                gamesDatabase.updateGame(game, String.valueOf(joinRequest.gameID()));
+            } catch (DataAccessException e) {
+                throw new HTTPException(500, e.getMessage());
             }
-            if (game.getColorUsername(joinRequest.playerColor()) != null) {
-                throw new HTTPException(403, "already taken");
-            }
-            if(joinRequest.playerColor() != null) {
-                game.assignPlayerColor(username, joinRequest.playerColor());
-            }
-            gamesDatabase.updateGame(game, String.valueOf(joinRequest.gameID()));
-        } catch(DataAccessException e) {
-            throw new HTTPException(500, e.getMessage());
+        } else {
+            throw new HTTPException(400, "Bad Request");
         }
     }
 

@@ -125,7 +125,7 @@ public class ChessClient {
         if(params.length == 1) {
             checkState(State.LOGGEDIN);
             try {
-                server.joinGame(null, Integer.parseInt(params[0]), authToken);
+                server.joinGame("observer", Integer.parseInt(params[0]), authToken);
             } catch(ResponseException e) {
                 return "Something went wrong";
             }
