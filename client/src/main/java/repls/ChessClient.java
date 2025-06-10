@@ -5,7 +5,10 @@ import model.GameData;
 import model.UserData;
 import serverfacade.ResponseException;
 import serverfacade.ServerFacade;
+import serverfacade.websocket.NotificationHandler;
+import serverfacade.websocket.WebSocketFacade;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -14,14 +17,18 @@ import static ui.EscapeSequences.*;
 public class ChessClient {
     private final ServerFacade server;
     private final String serverUrl;
+    NotificationHandler notificationHandler;
+    private WebSocketFacade ws;
     private String authToken = null;
+    private String userName = null;
     private State state = State.LOGGEDOUT;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
 
-    public ChessClient(String serverUrl) {
+    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         server = new ServerFacade(serverUrl);
         this.serverUrl = serverUrl;
+        this.notificationHandler = notificationHandler;
     }
 
     public String eval(String input) {
@@ -51,6 +58,7 @@ public class ChessClient {
             try {
                 var result = server.register(new UserData(params[0], params[1], params[2]));
                 authToken = result.getAuthToken();
+                userName = result.getUsername();
                 state = State.LOGGEDIN;
                 return String.format("Logged in as %s", result.getUsername());
             } catch(ResponseException e) {
@@ -69,6 +77,7 @@ public class ChessClient {
                 return "Error: username or password incorrect";
             }
             authToken = result.getAuthToken();
+            userName = result.getUsername();
             state = State.LOGGEDIN;
             return String.format("You logged in as %s", result.getUsername());
         }
@@ -79,6 +88,8 @@ public class ChessClient {
         checkParams("logout", params);
         checkState(State.LOGGEDIN);
         server.logout(authToken);
+        authToken = null;
+        userName = null;
         state = State.LOGGEDOUT;
         return "Successfully logged out! Have a nice day!";
     }
@@ -103,15 +114,20 @@ public class ChessClient {
             String id = getGameId(Integer.parseInt(params[1]));
             checkState(State.LOGGEDIN);
             try {
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
                 if(params[0].equals("white")) {
                     server.joinGame("WHITE", Integer.parseInt(id), authToken);
+                    ws.joinGame(authToken, Integer.parseInt(id), userName, "WHITE");
                 } else if(params[0].equals("black")) {
                     server.joinGame("BLACK", Integer.parseInt(id), authToken);
+                    ws.joinGame(authToken, Integer.parseInt(id), userName, "BLACK");
                 } else {
                     throw new ResponseException(400, "incorrect color input try again");
                 }
             } catch(ResponseException e) {
                 return "Your requested color is already taken";
+            } catch(IOException e) {
+                return "Something went wrong";
             }
             state = State.INGAME;
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
