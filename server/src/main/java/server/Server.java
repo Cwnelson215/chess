@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
+import server.websocket.WebSocketHandler;
 import service.*;
 import spark.*;
 
@@ -14,11 +15,13 @@ import java.util.Map;
 
 public class Server {
     private final UserService userService = new UserService();
+    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
         Spark.staticFiles.location("web");
 
+        Spark.webSocket("/ws", webSocketHandler);
         // Register your endpoints and handle exceptions here.
             Spark.post("/user", this::registerUser);
             Spark.post("/session", this::loginUser);
@@ -42,8 +45,6 @@ public class Server {
         } catch (HTTPException e) {
             res = e.createResponse(res);
             return res.body();
-        } catch (DataAccessException e) {
-            throw e;
         }
     }
 
