@@ -18,21 +18,21 @@ public class WebSocketHandler {
     private final ConcurrentHashMap<Integer, ConnectionManager> games = new ConcurrentHashMap<>();
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message, String userName, ChessMove move) throws IOException {
+    public void onMessage(Session session, String message, String userName, String playerColor, ChessMove move) throws IOException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
-            case CONNECT -> connect(command.getGameID(), session, userName);
+            case CONNECT -> connect(command.getGameID(), session, userName, playerColor);
             case LEAVE -> leave(command.getGameID(), userName);
             case RESIGN -> resign(command.getGameID(), userName);
             case MAKE_MOVE -> move(command.getGameID(), userName, move);
         }
     }
 
-    public void connect(int gameID, Session session, String userName) throws IOException {
+    public void connect(int gameID, Session session, String userName, String playerColor) throws IOException {
         if(games.contains(gameID)) {
             var game = games.get(gameID);
             game.add(userName, session);
-            var message = String.format("%s has joined the game", userName);
+            var message = String.format("%s has joined the game as %s", userName, playerColor);
             NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
             game.broadcast(userName, notification);
         }
