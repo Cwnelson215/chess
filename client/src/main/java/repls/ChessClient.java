@@ -1,8 +1,6 @@
 package repls;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
+import chess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -12,10 +10,7 @@ import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
-
+import java.util.*;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
@@ -55,6 +50,7 @@ public class ChessClient {
                 case "leave" -> leaveGame(params);
                 case "resign" -> resignGame();
                 case "redraw" -> redrawBoard();
+                case "check_moves" -> highlight(params);
                 default -> help();
             };
         } catch (Exception e) {
@@ -142,7 +138,7 @@ public class ChessClient {
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
             gameID = id;
             playerColor = params[0];
-            return drawBoard(sb, params[0]);
+            return drawBoard(sb, params[0], new ArrayList<>());
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
@@ -192,7 +188,7 @@ public class ChessClient {
             playerColor = "observer";
             gameID = id;
             StringBuilder sb = new StringBuilder("Observing game\n");
-            return drawBoard(sb, "observer");
+            return drawBoard(sb, "observer", null);
         }
         throw new ResponseException(400, "only the game ID is needed");
     }
@@ -225,7 +221,25 @@ public class ChessClient {
     }
 
     public String redrawBoard() throws ResponseException {
-        return drawBoard(new StringBuilder(), playerColor);
+        return drawBoard(new StringBuilder(), playerColor, new ArrayList<>());
+    }
+
+    public String highlight(String...params) throws ResponseException, IOException {
+        checkState(State.INGAME);
+        ArrayList<ChessPosition> highlightedPositions = new ArrayList<>(8);
+        if(params.length != 2) {
+            throw new ResponseException(400, "only 2 arguments are allowed");
+        }
+        if(isLetter(params[0]) && isInt(params[1])) {
+            if(!checkRange(params[0]) && checkRange(params[1])) {
+                throw new ResponseException(400, "row input or column input out of range");
+            }
+            ChessPosition chosenPosition = getPosition(params[0], params[1]);
+            highlightedPositions = listMoves(chosenPosition);
+        } else {
+            throw new ResponseException(400, "first input must be a letter and second must be a number");
+        }
+        return drawBoard(new StringBuilder(), playerColor, highlightedPositions);
     }
 
     public String help() {
@@ -252,7 +266,7 @@ public class ChessClient {
                 - leave
                 - move
                 - resign
-                - check_moves
+                - check_moves <row letter> <column number>
                """;
     }
 
@@ -266,11 +280,13 @@ public class ChessClient {
         }
     }
 
-    public String drawBoard(StringBuilder sb, String s) throws ResponseException {
+    public String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
         checkState(State.INGAME);
         setGameBoard();
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
+        String[] highlightColors = {SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN};
         ChessPiece[][] board = currentGame.getBoard().getBoard();
+        String background = null;
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
@@ -280,8 +296,12 @@ public class ChessClient {
             for (int i = 7; i > -1; i--) {
                 sb.append(rows[i]);
                 for (int j = 7; j > -1; j--) {
-                    var background = backgroundColors[(i + j) % 2];
-                    var sequence = getEscapeSequences(board[i][j]);
+                    if(highlightPositions.contains(new ChessPosition(i, j))) {
+                        background = highlightColors[(i + j) % 2];
+                    } else {
+                        background = backgroundColors[(i + j) % 2];
+                    }
+                    String sequence = getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
                 }
                 sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
@@ -300,7 +320,11 @@ public class ChessClient {
             for(int i = 0; i < 8; i++) {
                 sb.append(rows[i]);
                 for(int j = 0; j < 8; j++) {
-                    var background = backgroundColors[(i + j) % 2];
+                    if(highlightPositions.contains(new ChessPosition(i, j))) {
+                        background = highlightColors[(i + j) % 2];
+                    } else {
+                        background = backgroundColors[(i + j) % 2];
+                    }
                     var sequence = getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
                 }
@@ -341,6 +365,24 @@ public class ChessClient {
         }
     }
 
+    private boolean checkRange(String a) {
+        if(isLetter(a)) {
+            char c = a.charAt(0);
+            if (c >= 'A' && c <= 'H') {
+                return true;
+            } else {
+                return c >= 'a' && c <= 'h';
+            }
+        } else {
+            return Integer.parseInt(a) >= 1 && Integer.parseInt(a) <= 8;
+        }
+    }
+
+    public boolean isLetter(String s) {
+        char ch = s.charAt(0);
+        return ch >= 'A' && ch <= 'z';
+    }
+
     public boolean isInt(String s) {
         try {
             Integer.parseInt(s);
@@ -368,5 +410,49 @@ public class ChessClient {
     private String getGameId(int gameNumber) throws ResponseException {
         var games = server.listGames(authToken);
         return games.get(gameNumber - 1).getGameID();
+    }
+
+    private ChessPosition getPosition(String r, String c) throws ResponseException {
+        int row = convertRow(r);
+        int col = Integer.parseInt(c);
+        return new ChessPosition(row, col);
+    }
+
+    private ArrayList<ChessPosition> listMoves(ChessPosition piece) throws ResponseException {
+        Collection<ChessMove> moves = currentGame.validMoves(piece);
+        moves = currentGame.getMoves(moves);
+        ArrayList<ChessPosition> positions = new ArrayList<>();
+        for(ChessMove move : moves) {
+            positions.add(move.getEndPosition());
+        }
+        return positions;
+    }
+
+    public int convertRow(String row) {
+        if(playerColor == "WHITE") {
+            return switch (row) {
+                case "a" -> 1;
+                case "b" -> 2;
+                case "c" -> 3;
+                case "d" -> 4;
+                case "e" -> 5;
+                case "f" -> 6;
+                case "g" -> 7;
+                case "h" -> 8;
+                default -> throw new IllegalStateException("Unexpected value: " + row);
+            };
+        } else {
+            return switch (row) {
+                case "h" -> 1;
+                case "g" -> 2;
+                case "f" -> 3;
+                case "e" -> 4;
+                case "d" -> 5;
+                case "c" -> 6;
+                case "b" -> 7;
+                case "a" -> 8;
+                default -> throw new IllegalStateException("Unexpected value: " + row);
+            };
+        }
     }
 }
