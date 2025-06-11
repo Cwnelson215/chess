@@ -27,7 +27,7 @@ public class ChessClient {
     private String userName = null;
     private String gameID = null;
     private String playerColor = null;
-    private ChessBoard currentGameBoard = null;
+    private ChessGame currentGame = null;
     private State state = State.LOGGEDOUT;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
@@ -54,6 +54,7 @@ public class ChessClient {
                 case "quit" -> "Goodbye! \uD83D\uDE0A";
                 case "leave" -> leaveGame(params);
                 case "resign" -> resignGame();
+                case "redraw" -> redrawBoard();
                 default -> help();
             };
         } catch (Exception e) {
@@ -188,6 +189,8 @@ public class ChessClient {
                 return "Something went wrong";
             }
             state = State.INGAME;
+            playerColor = "observer";
+            gameID = id;
             StringBuilder sb = new StringBuilder("Observing game\n");
             return drawBoard(sb, "observer");
         }
@@ -212,14 +215,17 @@ public class ChessClient {
         Scanner scanner = new Scanner(System.in);
         var input =  scanner.nextLine();
         if(input.equals("yes")) {
-            state = State.LOGGEDIN;
             ws =  new WebSocketFacade(serverUrl, notificationHandler);
             ws.resignGame(authToken, Integer.parseInt(gameID), userName);
             gameID = null;
             return "You're game has been resigned";
         } else {
-            return "Carry on";
+            return String.format("Carry on\n%s", redrawBoard());
         }
+    }
+
+    public String redrawBoard() throws ResponseException {
+        return drawBoard(new StringBuilder(), playerColor);
     }
 
     public String help() {
@@ -264,7 +270,7 @@ public class ChessClient {
         checkState(State.INGAME);
         setGameBoard();
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
-        ChessPiece[][] board = currentGameBoard.getBoard();
+        ChessPiece[][] board = currentGame.getBoard().getBoard();
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
@@ -348,7 +354,7 @@ public class ChessClient {
         var list = server.listGames(authToken);
         for(GameData game : list) {
             if(Objects.equals(game.getGameID(), gameID)) {
-                currentGameBoard = game.getGame().getBoard();
+                currentGame = game.getGame();
             }
         }
     }
