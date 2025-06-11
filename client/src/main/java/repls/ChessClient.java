@@ -272,7 +272,7 @@ public class ChessClient {
             for (int i = 7; i > -1; i--) {
                 sb.append(rows[i]);
                 for (int j = 7; j > -1; j--) {
-                    var background = backgroundColors[j % 2];
+                    var background = backgroundColors[(i + j) % 2];
                     var sequence = getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
                 }
@@ -292,15 +292,15 @@ public class ChessClient {
             for(int i = 0; i < 8; i++) {
                 sb.append(rows[i]);
                 for(int j = 0; j < 8; j++) {
-                    var background = backgroundColors[j % 2];
+                    var background = backgroundColors[(i + j) % 2];
                     var sequence = getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
                 }
                 sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
             }
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
-            for(String col : columns) {
-                sb.append(col);
+            for(int i = 7; i > -1; i--) {
+                sb.append(columns[i]);
             }
             sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         }
