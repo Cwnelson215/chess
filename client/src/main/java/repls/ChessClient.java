@@ -1,8 +1,8 @@
 package repls;
 
 import chess.ChessBoard;
+import chess.ChessGame;
 import chess.ChessPiece;
-import chess.ChessPiece.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -10,7 +10,6 @@ import serverfacade.ResponseException;
 import serverfacade.ServerFacade;
 import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
-import ui.EscapeSequences;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -262,31 +261,76 @@ public class ChessClient {
     public String drawBoard(StringBuilder sb, String s) throws ResponseException {
         checkState(State.INGAME);
         setGameBoard();
+        String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
         ChessPiece[][] board = currentGameBoard.getBoard();
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
-            for (int row = 0; row < board.length; row++) {
-                for (int col = 0; col < board[row].length; col++) {
-                    if(board[row][col] != null) {
-
-                    }
-                }
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
+            for(String col : columns) {
+                sb.append(col);
             }
+            sb.append(EMPTY).append("\n");
+            for (int i = 7; i > -1; i--) {
+                sb.append(rows[i]);
+                for (int j = 7; j > -1; j--) {
+                    var background = backgroundColors[j % 2];
+                    var sequence = getEscapeSequences(board[i][j]);
+                    sb.append(background).append(sequence);
+                }
+                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
+            }
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
+            for(String col : columns) {
+                sb.append(col);
+            }
+            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         } else {
-
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
+            for(int i = 7; i > -1; i--) {
+                sb.append(columns[i]);
+            }
+            sb.append(EMPTY).append("\n");
+            for(int i = 0; i < 8; i++) {
+                sb.append(rows[i]);
+                for(int j = 0; j < 8; j++) {
+                    var background = backgroundColors[j % 2];
+                    var sequence = getEscapeSequences(board[i][j]);
+                    sb.append(background).append(sequence);
+                }
+                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
+            }
+            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
+            for(String col : columns) {
+                sb.append(col);
+            }
+            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         }
-
         return sb.toString();
     }
 
-    public void addPiece(StringBuilder sb, int row, int col) {
-
-    }
-
     public String getEscapeSequences(ChessPiece piece) {
-        return switch (piece) {
-            case
-            default -> EMPTY;
-        };
+        if(piece == null) {
+            return EMPTY;
+        }
+        var type = piece.getPieceType();
+        if(piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+            return switch(type) {
+                case KING -> WHITE_KING;
+                case QUEEN -> WHITE_QUEEN;
+                case BISHOP -> WHITE_BISHOP;
+                case KNIGHT -> WHITE_KNIGHT;
+                case ROOK -> WHITE_ROOK;
+                case PAWN -> WHITE_PAWN;
+            };
+        } else {
+            return switch(type) {
+                case KING -> BLACK_KING;
+                case QUEEN -> BLACK_QUEEN;
+                case BISHOP -> BLACK_BISHOP;
+                case KNIGHT -> BLACK_KNIGHT;
+                case ROOK -> BLACK_ROOK;
+                case PAWN -> BLACK_PAWN;
+            };
+        }
     }
 
     public String boardBuilder(StringBuilder sb, String s) {
