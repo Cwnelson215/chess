@@ -188,7 +188,7 @@ public class ChessClient {
             playerColor = "observer";
             gameID = id;
             StringBuilder sb = new StringBuilder("Observing game\n");
-            return drawBoard(sb, "observer", null);
+            return drawBoard(sb, "observer", new ArrayList<>());
         }
         throw new ResponseException(400, "only the game ID is needed");
     }
@@ -226,6 +226,7 @@ public class ChessClient {
 
     public String highlight(String...params) throws ResponseException, IOException {
         checkState(State.INGAME);
+        checkTurn();
         ArrayList<ChessPosition> highlightedPositions = new ArrayList<>(8);
         if(params.length != 2) {
             throw new ResponseException(400, "only 2 arguments are allowed");
@@ -428,8 +429,8 @@ public class ChessClient {
         return positions;
     }
 
-    public int convertRow(String row) {
-        if(playerColor == "WHITE") {
+    private int convertRow(String row) {
+        if(Objects.equals(playerColor, "WHITE")) {
             return switch (row) {
                 case "a" -> 1;
                 case "b" -> 2;
@@ -453,6 +454,12 @@ public class ChessClient {
                 case "a" -> 8;
                 default -> throw new IllegalStateException("Unexpected value: " + row);
             };
+        }
+    }
+
+    private void checkTurn() throws ResponseException {
+        if(!currentGame.getTeamTurn().equals(playerColor)) {
+            throw new ResponseException(400, "It's not your turn");
         }
     }
 }
