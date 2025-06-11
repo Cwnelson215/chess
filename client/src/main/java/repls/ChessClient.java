@@ -141,7 +141,7 @@ public class ChessClient {
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
             gameID = id;
             playerColor = params[0];
-            return boardBuilder(sb, params[0]);
+            return drawBoard(sb, params[0]);
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
