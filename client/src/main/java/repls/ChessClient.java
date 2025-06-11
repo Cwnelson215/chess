@@ -52,7 +52,7 @@ public class ChessClient {
                 case "list" -> list(params);
                 case "observe" -> observe(params);
                 case "quit" -> "Goodbye! \uD83D\uDE0A";
-                case "leave" -> exit(params);
+                case "leave" -> leaveGame(params);
                 case "resign" -> resignGame();
                 default -> help();
             };
@@ -181,19 +181,21 @@ public class ChessClient {
             }
             String id = getGameId(Integer.parseInt(params[0]));
             try {
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
                 server.joinGame("observer", Integer.parseInt(id), authToken);
-            } catch(ResponseException e) {
+                ws.joinGame(authToken, Integer.parseInt(id), userName, "observer");
+            } catch(Exception e) {
                 return "Something went wrong";
             }
             state = State.INGAME;
             StringBuilder sb = new StringBuilder("Observing game\n");
-            return boardBuilder(sb, "observer");
+            return drawBoard(sb, "observer");
         }
         throw new ResponseException(400, "only the game ID is needed");
     }
 
-    public String exit(String...params) throws ResponseException, IOException {
-        checkParams("exit", params);
+    public String leaveGame(String...params) throws ResponseException, IOException {
+        checkParams("leave", params);
         checkState(State.INGAME);
         state = State.LOGGEDIN;
         ws =  new WebSocketFacade(serverUrl, notificationHandler);
@@ -330,134 +332,6 @@ public class ChessClient {
                 case ROOK -> BLACK_ROOK;
                 case PAWN -> BLACK_PAWN;
             };
-        }
-    }
-
-    public String boardBuilder(StringBuilder sb, String s) {
-        if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
-            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
-            for(String col : columns) {
-                sb.append(col);
-            }
-            sb.append(EMPTY).append("\n");
-            for(int i = 7; i > -1; i--) {
-                sb.append(rows[i]);
-                if(i == 7) {
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_KNIGHT);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_BISHOP);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_QUEEN);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_KING);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_BISHOP);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_KNIGHT);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 6) {
-                    for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_BLACK + BLACK_PAWN).append(SET_BG_COLOR_WHITE + BLACK_PAWN);
-                    }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 1) {
-                    for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_WHITE + WHITE_PAWN).append(SET_BG_COLOR_BLACK + WHITE_PAWN);
-                    }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 0) {
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_KNIGHT);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_BISHOP);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_QUEEN);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_KING);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_BISHOP);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_KNIGHT);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else {
-                    fillEmptyWhite(sb, i);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                }
-            }
-            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
-            for(String col : columns) {
-                sb.append(col);
-            }
-            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
-        } else {
-            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
-            for(int i = 7; i > -1; i--) {
-                sb.append(columns[i]);
-            }
-            sb.append(EMPTY).append("\n");
-            for(int i = 0; i < 8; i++) {
-                sb.append(rows[i]);
-                if(i == 0) {
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_KNIGHT);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_BISHOP);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_KING);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_QUEEN);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_BISHOP);
-                    sb.append(SET_BG_COLOR_WHITE + WHITE_KNIGHT);
-                    sb.append(SET_BG_COLOR_BLACK + WHITE_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 1) {
-                    for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_BLACK + WHITE_PAWN).append(SET_BG_COLOR_WHITE + WHITE_PAWN);
-                    }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 6) {
-                    for(int j = 0; j < 4; j++) {
-                        sb.append(SET_BG_COLOR_WHITE + BLACK_PAWN).append(SET_BG_COLOR_BLACK + BLACK_PAWN);
-                    }
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else if(i == 7) {
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_KNIGHT);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_BISHOP);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_KING);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_QUEEN);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_BISHOP);
-                    sb.append(SET_BG_COLOR_BLACK + BLACK_KNIGHT);
-                    sb.append(SET_BG_COLOR_WHITE + BLACK_ROOK);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                } else {
-                    fillEmptyBlack(sb, i);
-                    sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
-                }
-            }
-            sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
-            for(int i = 7; i > -1; i--) {
-                sb.append(columns[i]);
-            }
-            sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
-        }
-        return sb.toString();
-    }
-
-    public void fillEmptyWhite(StringBuilder sb, int i) {
-        if(i == 5 || i == 3) {
-            for(int j = 0; j < 4; j++) {
-                sb.append(SET_BG_COLOR_WHITE + EMPTY);
-                sb.append(SET_BG_COLOR_BLACK + EMPTY);
-            }
-        } else {
-            for(int j = 0; j < 4; j++) {
-                sb.append(SET_BG_COLOR_BLACK + EMPTY);
-                sb.append(SET_BG_COLOR_WHITE + EMPTY);
-            }
-        }
-    }
-    public void fillEmptyBlack(StringBuilder sb, int i) {
-        if(i == 2 || i == 4) {
-            for(int j = 0; j < 4; j++) {
-                sb.append(SET_BG_COLOR_WHITE + EMPTY);
-                sb.append(SET_BG_COLOR_BLACK + EMPTY);
-            }
-        } else {
-            for(int j = 0; j < 4; j++) {
-                sb.append(SET_BG_COLOR_BLACK + EMPTY);
-                sb.append(SET_BG_COLOR_WHITE + EMPTY);
-            }
         }
     }
 
