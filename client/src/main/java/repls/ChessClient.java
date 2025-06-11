@@ -1,5 +1,8 @@
 package repls;
 
+import chess.ChessBoard;
+import chess.ChessPiece;
+import chess.ChessPiece.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -7,10 +10,12 @@ import serverfacade.ResponseException;
 import serverfacade.ServerFacade;
 import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
+import ui.EscapeSequences;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
@@ -21,6 +26,9 @@ public class ChessClient {
     private WebSocketFacade ws;
     private String authToken = null;
     private String userName = null;
+    private String gameID = null;
+    private String playerColor = null;
+    private ChessBoard currentGameBoard = null;
     private State state = State.LOGGEDOUT;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
@@ -45,10 +53,11 @@ public class ChessClient {
                 case "list" -> list(params);
                 case "observe" -> observe(params);
                 case "quit" -> "Goodbye! \uD83D\uDE0A";
-                case "exit" -> exit(params);
+                case "leave" -> exit(params);
+                case "resign" -> resignGame();
                 default -> help();
             };
-        } catch (ResponseException e) {
+        } catch (Exception e) {
             return e.getMessage();
         }
     }
@@ -131,6 +140,8 @@ public class ChessClient {
             }
             state = State.INGAME;
             StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
+            gameID = id;
+            playerColor = params[0];
             return boardBuilder(sb, params[0]);
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
@@ -182,11 +193,32 @@ public class ChessClient {
         throw new ResponseException(400, "only the game ID is needed");
     }
 
-    public String exit(String...params) throws ResponseException {
+    public String exit(String...params) throws ResponseException, IOException {
         checkParams("exit", params);
         checkState(State.INGAME);
         state = State.LOGGEDIN;
+        ws =  new WebSocketFacade(serverUrl, notificationHandler);
+        ws.leaveGame(authToken, Integer.parseInt(gameID), userName);
+        gameID = null;
         return "Game exited";
+    }
+
+    public String resignGame(String...params) throws ResponseException, IOException {
+        checkParams("resign", params);
+        checkState(State.INGAME);
+        System.out.println("Would you like to resign the match?");
+        System.out.printf("[%s]>>> ", state.toString());
+        Scanner scanner = new Scanner(System.in);
+        var input =  scanner.nextLine();
+        if(input.equals("yes")) {
+            state = State.LOGGEDIN;
+            ws =  new WebSocketFacade(serverUrl, notificationHandler);
+            ws.resignGame(authToken, Integer.parseInt(gameID), userName);
+            gameID = null;
+            return "You're game has been resigned";
+        } else {
+            return "Carry on";
+        }
     }
 
     public String help() {
@@ -208,24 +240,53 @@ public class ChessClient {
                     """;
         }
         return """
-                - exit
-                """;
+                - help
+                - redraw (Redraws game board)
+                - leave
+                - move
+                - resign
+                - check_moves
+               """;
     }
 
     public String getState() {
         return state.toString();
     }
 
-    public void checkState(State s) throws ResponseException {
-        if(s == State.LOGGEDIN) {
-            if(s != State.LOGGEDIN) {
-                throw new ResponseException(400, "must be logged in to perform this action");
+    public void checkState(State expectedState) throws ResponseException {
+        if(expectedState != state) {
+            throw new  ResponseException(400, String.format("Error: must be %s to perform that action", expectedState.toString()));
+        }
+    }
+
+    public String drawBoard(StringBuilder sb, String s) throws ResponseException {
+        checkState(State.INGAME);
+        setGameBoard();
+        ChessPiece[][] board = currentGameBoard.getBoard();
+        if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
+            for (int row = 0; row < board.length; row++) {
+                for (int col = 0; col < board[row].length; col++) {
+                    if(board[row][col] != null) {
+
+                    }
+                }
             }
         } else {
-            if(s != State.INGAME) {
-                throw new ResponseException(400, "must be in game to perform this action");
-            }
+
         }
+
+        return sb.toString();
+    }
+
+    public void addPiece(StringBuilder sb, int row, int col) {
+
+    }
+
+    public String getEscapeSequences(ChessPiece piece) {
+        return switch (piece) {
+            case
+            default -> EMPTY;
+        };
     }
 
     public String boardBuilder(StringBuilder sb, String s) {
@@ -362,6 +423,15 @@ public class ChessClient {
             return true;
         } catch(Exception e) {
             return false;
+        }
+    }
+
+    public void setGameBoard() throws ResponseException {
+        var list = server.listGames(authToken);
+        for(GameData game : list) {
+            if(Objects.equals(game.getGameID(), gameID)) {
+                currentGameBoard = game.getGame().getBoard();
+            }
         }
     }
 

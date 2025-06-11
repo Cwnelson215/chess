@@ -51,7 +51,6 @@ public class WebSocketHandler {
         var message = String.format("%s has resigned", userName);
         NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
         game.broadcast(userName, notification);
-
     }
 
     public void move(int gameID, String userName, ChessMove move) throws IOException {
