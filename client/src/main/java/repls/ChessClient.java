@@ -465,6 +465,7 @@ public class ChessClient {
             }
         } else if(!Objects.equals(playerColor, "black")) {
             throw new ResponseException(400, "It's not your turn");
+
         }
     }
 }
