@@ -1,20 +1,16 @@
 package server;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import server.websocket.WebSocketHandler;
 import service.*;
 import spark.*;
 
-
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Map;
-
-
+@WebSocket
 public class Server {
     private final UserService userService = new UserService();
     private final WebSocketHandler webSocketHandler = new WebSocketHandler();
@@ -127,6 +123,12 @@ public class Server {
             res = e.createResponse(res);
             return res.body();
         }
+    }
+
+    @OnWebSocketMessage
+    public void onMessage(Session session, String message) throws Exception {
+        System.out.printf("Received: %s", message);
+        session.getRemote().sendString(message);
     }
 
     public void stop() {
