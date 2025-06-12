@@ -76,7 +76,7 @@ public class ChessClient {
 
     public String login(String...params) throws ResponseException {
         if(params.length == 2) {
-            AuthData result = null;
+            AuthData result;
             try {
                 result = server.login(params[0], params[1]);
             } catch(ResponseException e) {
@@ -225,9 +225,9 @@ public class ChessClient {
         return drawBoard(new StringBuilder(), playerColor, new ArrayList<>());
     }
 
-    public String highlight(String...params) throws ResponseException, IOException {
+    public String highlight(String...params) throws ResponseException {
         checkState(State.INGAME);
-        ArrayList<ChessPosition> highlightedPositions = new ArrayList<>(8);
+        ArrayList<ChessPosition> highlightedPositions;
         if(params.length != 2) {
             throw new ResponseException(400, "only 2 arguments are allowed");
         }
@@ -312,7 +312,7 @@ public class ChessClient {
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
         String[] highlightColors = {SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN};
         ChessPiece[][] board = currentGame.getBoard().getBoard();
-        String background = null;
+        String background;
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY).append(SET_TEXT_COLOR_BLUE);
             for(String col : columns) {
@@ -443,7 +443,7 @@ public class ChessClient {
         return games.get(gameNumber - 1).getGameID();
     }
 
-    private ChessPosition getPosition(String c, String r) throws ResponseException {
+    private ChessPosition getPosition(String c, String r) {
         int col = convertColumn(c);
         int row = Integer.parseInt(r);
         if(playerColor.equals("white")) {
@@ -452,7 +452,7 @@ public class ChessClient {
         return new ChessPosition(row, col);
     }
 
-    private ArrayList<ChessPosition> listMoves(ChessPosition piece) throws ResponseException {
+    private ArrayList<ChessPosition> listMoves(ChessPosition piece) {
         Collection<ChessMove> moves = currentGame.validMoves(piece);
         moves = currentGame.getMoves(moves);
         ArrayList<ChessPosition> positions = new ArrayList<>();
