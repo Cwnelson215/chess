@@ -432,33 +432,38 @@ public class ChessClient {
     private int convertRow(String col) {
         if(Objects.equals(playerColor, "WHITE")) {
             return switch (col) {
-                case "a" -> 1;
-                case "b" -> 2;
-                case "c" -> 3;
+                case "a" -> 7;
+                case "b" -> 6;
+                case "c" -> 5;
                 case "d" -> 4;
-                case "e" -> 5;
-                case "f" -> 6;
-                case "g" -> 7;
-                case "h" -> 8;
+                case "e" -> 3;
+                case "f" -> 2;
+                case "g" -> 1;
+                case "h" -> 0;
                 default -> throw new IllegalStateException("Unexpected value: " + col);
             };
         } else {
             return switch (col) {
-                case "h" -> 1;
-                case "g" -> 2;
-                case "f" -> 3;
-                case "e" -> 4;
-                case "d" -> 5;
-                case "c" -> 6;
-                case "b" -> 7;
-                case "a" -> 8;
+                case "h" -> 0;
+                case "g" -> 1;
+                case "f" -> 2;
+                case "e" -> 3;
+                case "d" -> 4;
+                case "c" -> 5;
+                case "b" -> 6;
+                case "a" -> 7;
                 default -> throw new IllegalStateException("Unexpected value: " + col);
             };
         }
     }
 
     private void checkTurn() throws ResponseException {
-        if(!currentGame.getTeamTurn().equals(playerColor)) {
+        var currentTurn = currentGame.getTeamTurn();
+        if(currentTurn.equals(ChessGame.TeamColor.WHITE)) {
+            if(!playerColor.equals("white")) {
+                throw new ResponseException(400, "It's not your turn");
+            }
+        } else if(!playerColor.equals("black")) {
             throw new ResponseException(400, "It's not your turn");
         }
     }
