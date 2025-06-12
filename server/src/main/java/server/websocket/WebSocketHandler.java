@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @WebSocket
 public class WebSocketHandler {
     private final ConcurrentHashMap<Integer, ConnectionManager> games = new ConcurrentHashMap<>();
+    String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) throws IOException {
@@ -61,7 +62,8 @@ public class WebSocketHandler {
 
         checkForGame(gameID);
         var game = games.get(gameID);
-        var message = String.format("%s has moved %s%s to %s%s", userName, startRow, startColumn, endRow, endCol);
+        var message = String.format("%s has moved %s%s to %s%s", userName, startRow, columns[startColumn - 1],
+                endRow, columns[endCol - 1]);
         NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
         game.broadcast(userName, notification);
     }
