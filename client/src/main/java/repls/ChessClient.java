@@ -415,7 +415,7 @@ public class ChessClient {
 
     private ChessPosition getPosition(String r, String c) throws ResponseException {
         int row = convertRow(r);
-        int col = Integer.parseInt(c);
+        int col = Integer.parseInt(c) - 1;
         return new ChessPosition(row, col);
     }
 
@@ -430,35 +430,40 @@ public class ChessClient {
     }
 
     private int convertRow(String row) {
-        if(Objects.equals(playerColor, "WHITE")) {
+        if(Objects.equals(playerColor, "white")) {
             return switch (row) {
-                case "a" -> 1;
-                case "b" -> 2;
-                case "c" -> 3;
+                case "a" -> 7;
+                case "b" -> 6;
+                case "c" -> 5;
                 case "d" -> 4;
-                case "e" -> 5;
-                case "f" -> 6;
-                case "g" -> 7;
-                case "h" -> 8;
+                case "e" -> 3;
+                case "f" -> 2;
+                case "g" -> 1;
+                case "h" -> 0;
                 default -> throw new IllegalStateException("Unexpected value: " + row);
             };
         } else {
             return switch (row) {
-                case "h" -> 1;
-                case "g" -> 2;
-                case "f" -> 3;
-                case "e" -> 4;
-                case "d" -> 5;
-                case "c" -> 6;
-                case "b" -> 7;
-                case "a" -> 8;
+                case "h" -> 0;
+                case "g" -> 1;
+                case "f" -> 2;
+                case "e" -> 3;
+                case "d" -> 4;
+                case "c" -> 5;
+                case "b" -> 6;
+                case "a" -> 7;
                 default -> throw new IllegalStateException("Unexpected value: " + row);
             };
         }
     }
 
     private void checkTurn() throws ResponseException {
-        if(!currentGame.getTeamTurn().equals(playerColor)) {
+        var currentTurn = currentGame.getTeamTurn();
+        if(currentTurn.equals(ChessGame.TeamColor.WHITE)) {
+            if(!Objects.equals(playerColor, "white")) {
+                throw new ResponseException(400, "It's not your turn");
+            }
+        } else if(!Objects.equals(playerColor, "black")) {
             throw new ResponseException(400, "It's not your turn");
         }
     }
