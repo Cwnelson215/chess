@@ -250,7 +250,11 @@ public class ChessClient {
             ws = new WebSocketFacade(serverUrl, notificationHandler);
             try {
                 var chosenPiece = getPosition(params[0], params[1]);
+                checkPieceColor(chosenPiece);
                 Collection<ChessMove> possibleMoves = currentGame.validMoves(chosenPiece);
+                if(possibleMoves.isEmpty()) {
+                    throw new ResponseException(400, "Unable to move chosen piece");
+                }
                 var chosenMove = confirmMove(possibleMoves);
                 currentGame.makeMove(chosenMove);
                 ws.makeMove(authToken, Integer.parseInt(gameID), userName, chosenMove);
@@ -296,13 +300,13 @@ public class ChessClient {
         return state.toString();
     }
 
-    public void checkState(State expectedState) throws ResponseException {
+    private void checkState(State expectedState) throws ResponseException {
         if(expectedState != state) {
             throw new  ResponseException(400, String.format("Error: must be %s to perform that action", expectedState.toString()));
         }
     }
 
-    public String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
+    private String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
         checkState(State.INGAME);
         setGameBoard();
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
@@ -366,7 +370,7 @@ public class ChessClient {
         return sb.toString();
     }
 
-    public String getEscapeSequences(ChessPiece piece) {
+    private String getEscapeSequences(ChessPiece piece) {
         if(piece == null) {
             return EMPTY;
         }
@@ -405,12 +409,12 @@ public class ChessClient {
         }
     }
 
-    public boolean isLetter(String s) {
+    private boolean isLetter(String s) {
         char ch = s.charAt(0);
         return ch >= 'A' && ch <= 'z';
     }
 
-    public boolean isInt(String s) {
+    private boolean isInt(String s) {
         try {
             Integer.parseInt(s);
             return true;
@@ -419,7 +423,7 @@ public class ChessClient {
         }
     }
 
-    public void setGameBoard() throws ResponseException {
+    private void setGameBoard() throws ResponseException {
         var list = server.listGames(authToken);
         for(GameData game : list) {
             if(Objects.equals(game.getGameID(), gameID)) {
@@ -428,7 +432,7 @@ public class ChessClient {
         }
     }
 
-    public void checkParams(String s, String...params) throws ResponseException{
+    private void checkParams(String s, String...params) throws ResponseException{
         if(params.length > 0) {
             throw new ResponseException(400, String.format("No inputs required for %s command", s));
         }
@@ -442,6 +446,9 @@ public class ChessClient {
     private ChessPosition getPosition(String c, String r) throws ResponseException {
         int col = convertColumn(c);
         int row = Integer.parseInt(r);
+        if(playerColor.equals("white")) {
+            return  new ChessPosition(row, 9 - col);
+        }
         return new ChessPosition(row, col);
     }
 
@@ -500,12 +507,21 @@ public class ChessClient {
         int i = 1;
         for(ChessMove move : moves) {
             String s = i + ". " +
-                    columns[move.getEndPosition().getColumn() - 1] + move.getEndPosition().getRow();
+                    columns[8 - move.getEndPosition().getColumn()] + "\b" + move.getEndPosition().getRow();
             System.out.println(s);
+            i++;
         }
-        Scanner scanner = new Scanner(System.in);
-        var input =  Integer.parseInt(scanner.nextLine()) - 1;
-        return possibleMoves.get(input);
+        System.out.print("[INGAME]>>> ");
+        while(true) {
+            Scanner scanner = new Scanner(System.in);
+            var input = Integer.parseInt(scanner.nextLine());
+            if (input > possibleMoves.size()) {
+                System.out.printf(SET_TEXT_COLOR_GREEN + "%s was not an option, please try again.%n" + SET_TEXT_COLOR_BLUE, input);
+                System.out.print("[INGAME]>>> ");
+                continue;
+            }
+            return possibleMoves.get(input - 1);
+        }
     }
 
     private void updateGame() throws ResponseException {
@@ -523,5 +539,22 @@ public class ChessClient {
             }
         }
         return null;
+    }
+
+    private void checkPieceColor(ChessPosition position) throws ResponseException {
+        ChessPiece piece = currentGame.getBoard().getPiece(position);
+        if(piece != null) {
+            if(piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
+                if(!playerColor.equals("white")) {
+                    throw new ResponseException(400, "Selected piece is not your color");
+                }
+            } else {
+                if(!playerColor.equals("black")) {
+                    throw new ResponseException(400, "Selected piece is not your color");
+                }
+            }
+        } else {
+            throw new ResponseException(400, "No piece in found selected square");
+        }
     }
 }
