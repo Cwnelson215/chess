@@ -132,6 +132,16 @@ public class UserService {
         }
     }
 
+    public void updateGame(UpdateRequest updateRequest) {
+        var game = updateRequest.game();
+        var gameID = updateRequest.gameID();
+        try {
+            gamesDatabase.updateGame(game, gameID);
+        } catch(DataAccessException e) {
+            throw new HTTPException(500, e.getMessage());
+        }
+    }
+
     public void checkAuthorization(String authToken) throws HTTPException, DataAccessException {
         try {
             var auth = authDatabase.getAuth(authToken);

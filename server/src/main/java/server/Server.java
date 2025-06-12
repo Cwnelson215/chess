@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
@@ -9,6 +10,7 @@ import service.*;
 import spark.*;
 
 
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -29,6 +31,7 @@ public class Server {
             Spark.get("/game", this::gamesList);
             Spark.post("/game", this::createGame);
             Spark.put("/game", this::joinGame);
+            Spark.put("/update", this::updateGame);
             Spark.delete("/db", this::clearData);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
@@ -110,6 +113,17 @@ public class Server {
             userService.join(joinRequest, authToken);
             return new Gson().toJson(null);
         } catch(HTTPException e) {
+            res = e.createResponse(res);
+            return res.body();
+        }
+    }
+
+    public Object updateGame(Request req, Response res) {
+        try {
+            UpdateRequest updateRequest = new Gson().fromJson(req.body(), UpdateRequest.class);
+            userService.updateGame(updateRequest);
+            return new Gson().toJson(null);
+        } catch (HTTPException e) {
             res = e.createResponse(res);
             return res.body();
         }

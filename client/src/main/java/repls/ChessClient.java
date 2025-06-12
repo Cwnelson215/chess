@@ -51,6 +51,7 @@ public class ChessClient {
                 case "resign" -> resignGame();
                 case "redraw" -> redrawBoard();
                 case "check_moves" -> highlight(params);
+                case "move" -> move(params);
                 default -> help();
             };
         } catch (Exception e) {
@@ -242,6 +243,27 @@ public class ChessClient {
         return drawBoard(new StringBuilder(), playerColor, highlightedPositions);
     }
 
+    public String move(String...params) throws ResponseException {
+        checkState(State.INGAME);
+        checkTurn();
+        if(params.length == 2) {
+            ws = new WebSocketFacade(serverUrl, notificationHandler);
+            try {
+                var chosenPiece = getPosition(params[0], params[1]);
+                Collection<ChessMove> possibleMoves = currentGame.validMoves(chosenPiece);
+                var chosenMove = confirmMove(possibleMoves);
+                currentGame.makeMove(chosenMove);
+                ws.makeMove(authToken, Integer.parseInt(gameID), userName, chosenMove);
+                updateGame();
+            } catch (Exception e) {
+                throw new ResponseException(400, e.getMessage());
+            }
+        } else {
+            throw new ResponseException(400, "move command must have 2 inputs");
+        }
+        return redrawBoard();
+    }
+
     public String help() {
         if(state == State.LOGGEDOUT) {
             return """
@@ -418,7 +440,7 @@ public class ChessClient {
     }
 
     private ChessPosition getPosition(String c, String r) throws ResponseException {
-        int col = convertRow(c);
+        int col = convertColumn(c);
         int row = Integer.parseInt(r);
         return new ChessPosition(row, col);
     }
@@ -433,7 +455,7 @@ public class ChessClient {
         return positions;
     }
 
-    private int convertRow(String col) {
+    private int convertColumn(String col) {
         if(Objects.equals(playerColor, "black")) {
             return switch (col) {
                 case "h" -> 1;
@@ -470,5 +492,36 @@ public class ChessClient {
         } else if(!playerColor.equals("black")) {
             throw new ResponseException(400, "It's not your turn");
         }
+    }
+
+    private ChessMove confirmMove(Collection<ChessMove> moves) {
+        ArrayList<ChessMove> possibleMoves = (ArrayList<ChessMove>) moves;
+        System.out.println("Please choose which move you would like to make");
+        int i = 1;
+        for(ChessMove move : moves) {
+            String s = i + ". " +
+                    columns[move.getEndPosition().getColumn() - 1] + move.getEndPosition().getRow();
+            System.out.println(s);
+        }
+        Scanner scanner = new Scanner(System.in);
+        var input =  Integer.parseInt(scanner.nextLine()) - 1;
+        return possibleMoves.get(input);
+    }
+
+    private void updateGame() throws ResponseException {
+        GameData game = getGameData();
+        assert game != null;
+        game.setGame(currentGame);
+        server.updateGame(game, gameID);
+    }
+
+    private GameData getGameData() throws ResponseException {
+        var list = server.listGames(authToken);
+        for(GameData game : list) {
+            if(game.getGameID().equals(gameID)) {
+                return game;
+            }
+        }
+        return null;
     }
 }

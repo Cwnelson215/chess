@@ -10,7 +10,7 @@ public class GameData {
     private String whiteUsername;
     private String blackUsername;
     private final String gameName;
-    private final ChessGame game;
+    private ChessGame game;
 
     public GameData(String gameName) {
         this.gameName = gameName;
@@ -47,6 +47,10 @@ public class GameData {
     public String getWhiteUsername(){return whiteUsername;}
 
     public String getBlackUsername(){return blackUsername;}
+
+    public void setGame(ChessGame updatedGame) {
+        this.game = updatedGame;
+    }
 
     public ChessGame getGame() {return game;}
 }
