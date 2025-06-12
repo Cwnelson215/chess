@@ -226,7 +226,6 @@ public class ChessClient {
 
     public String highlight(String...params) throws ResponseException, IOException {
         checkState(State.INGAME);
-        checkTurn();
         ArrayList<ChessPosition> highlightedPositions = new ArrayList<>(8);
         if(params.length != 2) {
             throw new ResponseException(400, "only 2 arguments are allowed");
@@ -297,7 +296,7 @@ public class ChessClient {
             for (int i = 7; i > -1; i--) {
                 sb.append(rows[i]);
                 for (int j = 7; j > -1; j--) {
-                    if(highlightPositions.contains(new ChessPosition(i, j))) {
+                    if(highlightPositions.contains(new ChessPosition(i - 1, j - 1))) {
                         background = highlightColors[(i + j) % 2];
                     } else {
                         background = backgroundColors[(i + j) % 2];
@@ -321,7 +320,7 @@ public class ChessClient {
             for(int i = 0; i < 8; i++) {
                 sb.append(rows[i]);
                 for(int j = 0; j < 8; j++) {
-                    if(highlightPositions.contains(new ChessPosition(i, j))) {
+                    if(highlightPositions.contains(new ChessPosition(i + 1, j + 1))) {
                         background = highlightColors[(i + j) % 2];
                     } else {
                         background = backgroundColors[(i + j) % 2];
@@ -415,7 +414,7 @@ public class ChessClient {
 
     private ChessPosition getPosition(String c, String r) throws ResponseException {
         int col = convertRow(c);
-        int row = Integer.parseInt(r) - 1;
+        int row = Integer.parseInt(r);
         return new ChessPosition(row, col);
     }
 
@@ -430,28 +429,28 @@ public class ChessClient {
     }
 
     private int convertRow(String col) {
-        if(Objects.equals(playerColor, "WHITE")) {
+        if(Objects.equals(playerColor, "white")) {
             return switch (col) {
-                case "a" -> 7;
-                case "b" -> 6;
-                case "c" -> 5;
+                case "a" -> 1;
+                case "b" -> 2;
+                case "c" -> 3;
                 case "d" -> 4;
-                case "e" -> 3;
-                case "f" -> 2;
-                case "g" -> 1;
-                case "h" -> 0;
+                case "e" -> 5;
+                case "f" -> 6;
+                case "g" -> 7;
+                case "h" -> 8;
                 default -> throw new IllegalStateException("Unexpected value: " + col);
             };
         } else {
             return switch (col) {
-                case "h" -> 0;
-                case "g" -> 1;
-                case "f" -> 2;
-                case "e" -> 3;
-                case "d" -> 4;
-                case "c" -> 5;
-                case "b" -> 6;
-                case "a" -> 7;
+                case "h" -> 1;
+                case "g" -> 2;
+                case "f" -> 3;
+                case "e" -> 4;
+                case "d" -> 5;
+                case "c" -> 6;
+                case "b" -> 7;
+                case "a" -> 8;
                 default -> throw new IllegalStateException("Unexpected value: " + col);
             };
         }
