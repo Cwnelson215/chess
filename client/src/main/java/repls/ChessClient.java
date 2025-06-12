@@ -293,18 +293,23 @@ public class ChessClient {
                 sb.append(col);
             }
             sb.append(EMPTY).append("\n");
-            for (int i = 7; i > -1; i--) {
-                sb.append(rows[i]);
-                for (int j = 7; j > -1; j--) {
-                    if(highlightPositions.contains(new ChessPosition(i - 1, j - 1))) {
+            int rowCounter = 7;
+            for (int i = 1; i < 9; i++) {
+                sb.append(rows[rowCounter]);
+                int columnCounter = 7;
+                for (int j = 1; j < 9; j++) {
+                    ChessPosition position = new ChessPosition(9 - i, j);
+                    if(highlightPositions.contains(position)) {
                         background = highlightColors[(i + j) % 2];
                     } else {
                         background = backgroundColors[(i + j) % 2];
                     }
-                    String sequence = getEscapeSequences(board[i][j]);
+                    String sequence = getEscapeSequences(board[rowCounter][columnCounter]);
                     sb.append(background).append(sequence);
+                    columnCounter--;
                 }
-                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
+                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[rowCounter]).append("\n");
+                rowCounter--;
             }
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
             for(String col : columns) {
@@ -429,19 +434,7 @@ public class ChessClient {
     }
 
     private int convertRow(String col) {
-        if(Objects.equals(playerColor, "white")) {
-            return switch (col) {
-                case "a" -> 1;
-                case "b" -> 2;
-                case "c" -> 3;
-                case "d" -> 4;
-                case "e" -> 5;
-                case "f" -> 6;
-                case "g" -> 7;
-                case "h" -> 8;
-                default -> throw new IllegalStateException("Unexpected value: " + col);
-            };
-        } else {
+        if(Objects.equals(playerColor, "black")) {
             return switch (col) {
                 case "h" -> 1;
                 case "g" -> 2;
@@ -451,6 +444,18 @@ public class ChessClient {
                 case "c" -> 6;
                 case "b" -> 7;
                 case "a" -> 8;
+                default -> throw new IllegalStateException("Unexpected value: " + col);
+            };
+        } else {
+            return switch (col) {
+                case "a" -> 1;
+                case "b" -> 2;
+                case "c" -> 3;
+                case "d" -> 4;
+                case "e" -> 5;
+                case "f" -> 6;
+                case "g" -> 7;
+                case "h" -> 8;
                 default -> throw new IllegalStateException("Unexpected value: " + col);
             };
         }
