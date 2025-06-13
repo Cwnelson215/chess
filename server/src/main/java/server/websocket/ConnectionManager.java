@@ -36,4 +36,21 @@ public class ConnectionManager {
             connections.remove(c.userName);
         }
     }
+
+    public void notify(String userName, ServerMessage msg) throws IOException {
+        ArrayList<Connection> removeList = new ArrayList<>();
+        for(var c : connections.values()) {
+            if(c.session.isOpen()) {
+                if(c.userName.equals(userName)) {
+                    c.send(new Gson().toJson(msg));
+                }
+            } else {
+                removeList.add(c);
+            }
+        }
+
+        for(var c : removeList) {
+            connections.remove(c.userName);
+        }
+    }
 }

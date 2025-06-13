@@ -74,13 +74,6 @@ public class ServerFacade {
         }
     }
 
-    public void updateGame(GameData game, String gameID) throws ResponseException {
-        var path = "/update";
-        record UpdateRequest(GameData game, String gameID) {}
-        var updateReq = new UpdateRequest(game, gameID);
-        this.makeRequest("PUT", path, updateReq, null, null);
-    }
-
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws ResponseException {
         try {
             URL url = (new URI(serverUrl + path)).toURL();

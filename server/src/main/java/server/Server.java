@@ -10,7 +10,8 @@ import spark.*;
 
 public class Server {
     private final UserService userService = new UserService();
-    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
+    private final WebSocketHandler webSocketHandler = new WebSocketHandler(userService);
+
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);

@@ -4,11 +4,16 @@ import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import service.JoinRequest;
+import service.UserService;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
@@ -17,29 +22,45 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @WebSocket
 public class WebSocketHandler {
+    private UserService userService;
+
+    public WebSocketHandler(UserService userService) {
+        this.userService = userService;
+    }
+
     private final ConcurrentHashMap<Integer, ConnectionManager> games = new ConcurrentHashMap<>();
     private boolean sendToUser = false;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) throws IOException {
+    public void onMessage(Session session, String message) throws IOException, DataAccessException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
-            case CONNECT -> connect(command.getGameID(), session, command.getUserName(), command.getPlayerColor());
+            case CONNECT -> connect(command.getGameID(), session, command.getAuthToken());
             case LEAVE -> leave(command.getGameID(), command.getUserName());
             case RESIGN -> resign(command.getGameID(), command.getUserName());
             case MAKE_MOVE -> move(command.getGameID(), command.getUserName(), command.getMove(), command.getPlayerColor(), command.getGameState());
         }
     }
 
-    public void connect(int gameID, Session session, String userName, String playerColor) throws IOException {
+    public void connect(int gameID, Session session,String authToken) throws IOException, DataAccessException {
         checkForGame(gameID);
         var game = games.get(gameID);
-        game.add(userName, session);
-        var message = String.format("%s has joined the game as %s", userName, playerColor);
-        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                message, String.valueOf(gameID), "JOIN");
-        game.broadcast(userName, notification);
+        try {
+            var userName = userService.getUserName(authToken);
+            userService.join(new JoinRequest(playerColor, gameID), authToken);
+            game.add(userName, session);
+            var message = String.format("%s has joined the game", userName);
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                    message, String.valueOf(gameID), "LEAVE");
+            LoadMessage loadMessage = new LoadMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                    new Gson().toJson(userService.getGame(gameID), GameData.class));
+            game.broadcast(userName, notification);
+            game.notify(userName, loadMessage);
+        } catch(Exception e) {
+            game.notify(userName, new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: " + e.getMessage()));
+        }
     }
 
     public void leave(int gameID, String userName) throws IOException {

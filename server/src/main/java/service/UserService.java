@@ -169,4 +169,16 @@ public class UserService {
             throw new HTTPException(500, e.getMessage());
         }
     }
+
+    public GameData getGame(int gameID) throws DataAccessException {
+        return gamesDatabase.getGame(String.valueOf(gameID));
+    }
+
+    public String getUserName(String authToken) throws DataAccessException {
+        return authDatabase.getUsername(authToken);
+    }
+
+//    public String getPlayerColor(String userName) {
+//        return gamesDatabase.
+//    }
 }

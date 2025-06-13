@@ -1,6 +1,7 @@
 package repls;
 
 import chess.*;
+import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -9,6 +10,7 @@ import serverfacade.ServerFacade;
 import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.*;
@@ -124,10 +126,10 @@ public class ChessClient implements NotificationHandler {
             checkState(State.LOGGEDIN);
             try {
                 if(params[0].equals("white")) {
-                    server.joinGame("WHITE", Integer.parseInt(id), authToken);
+                    server.joinGame(params[0], Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "WHITE");
                 } else if(params[0].equals("black")) {
-                    server.joinGame("BLACK", Integer.parseInt(id), authToken);
+                    server.joinGame(params[0], Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "BLACK");
                 } else {
                     throw new ResponseException(400, "incorrect color input try again");
@@ -184,7 +186,6 @@ public class ChessClient implements NotificationHandler {
             }
             String id = getGameId(Integer.parseInt(params[0]));
             try {
-                server.joinGame("observer", Integer.parseInt(id), authToken);
                 ws.joinGame(authToken, Integer.parseInt(id), userName, "observer");
             } catch(Exception e) {
                 return "Something went wrong";
@@ -265,7 +266,6 @@ public class ChessClient implements NotificationHandler {
                 }
                 var chosenMove = confirmMove(possibleMoves);
                 currentGame.makeMove(chosenMove);
-                updateGame();
                 ws.makeMove(authToken, Integer.parseInt(gameID), userName, playerColor, chosenMove, getGameData());
             } catch (Exception e) {
                 throw new ResponseException(400, e.getMessage());
@@ -535,13 +535,6 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    private void updateGame() throws ResponseException {
-        GameData game = getGameData();
-        assert game != null;
-        game.setGame(currentGame);
-        server.updateGame(game, gameID);
-    }
-
     private GameData getGameData() throws ResponseException {
         var list = server.listGames(authToken);
         for(GameData game : list) {
@@ -553,19 +546,13 @@ public class ChessClient implements NotificationHandler {
     }
 
     @Override
-    public void notify(NotificationMessage message) {
-        System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message + SET_TEXT_COLOR_BLUE);
-
-        if(message.getType().equals("MOVE")) {
-            try {
-                setGameBoard();
-                System.out.println(redrawBoard());
-            } catch(Exception e) {
-                System.out.println("Something went wrong");
-            }
+    public void notify(ServerMessage message) {
+        if(message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
+            currentGame = new Gson().fromJson(String.valueOf(message), GameData.class).getGame();
+        } else {
+            System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message + SET_TEXT_COLOR_BLUE);
+            System.out.print("[INGAME]>>> ");
         }
-        System.out.print("[INGAME]>>> ");
-
     }
 
     private void checkPieceColor(ChessPosition position) throws ResponseException {

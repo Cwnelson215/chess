@@ -2,6 +2,7 @@ package repls;
 
 import serverfacade.websocket.NotificationHandler;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.util.Scanner;
 
@@ -40,7 +41,7 @@ public class Repl implements NotificationHandler {
 
     }
 
-    public void notify(NotificationMessage notification) {
-        client.notify(notification);
+    public void notify(ServerMessage message) {
+        client.notify(message);
     }
 }
