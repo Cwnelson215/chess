@@ -132,6 +132,23 @@ public class UserService {
         }
     }
 
+    public void leave(LeaveRequest leaveRequest) throws HTTPException, DataAccessException {
+        try {
+            GameData game = gamesDatabase.getGame(String.valueOf(leaveRequest.gameID()));
+            if (game == null) {
+                throw new HTTPException(400, "Bad Request");
+            }
+            if(leaveRequest.playerColor().equals("WHITE")) {
+                game.assignPlayerColor("WHITE", null);
+            } else {
+                game.assignPlayerColor("BLACK", null);
+            }
+            gamesDatabase.updateGame(game, String.valueOf(leaveRequest.gameID()));
+        } catch (DataAccessException e) {
+            throw new HTTPException(500, e.getMessage());
+        }
+    }
+
     public void updateGame(UpdateRequest updateRequest) {
         var game = updateRequest.game();
         var gameID = updateRequest.gameID();

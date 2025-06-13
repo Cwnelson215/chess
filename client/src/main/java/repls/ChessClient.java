@@ -25,6 +25,7 @@ public class ChessClient implements NotificationHandler {
     private String playerColor = null;
     private ChessGame currentGame = null;
     private State state = State.LOGGEDOUT;
+    private boolean gameOver = false;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     String[] rows = {" 1 ", " 2 ", " 3 ", " 4 ", " 5 ", " 6 ", " 7 ", " 8 "};
 
@@ -200,6 +201,7 @@ public class ChessClient implements NotificationHandler {
     public String leaveGame(String...params) throws ResponseException, IOException {
         checkParams("leave", params);
         checkState(State.INGAME);
+        server.leaveGame(playerColor, Integer.parseInt(gameID));
         ws.leaveGame(authToken, Integer.parseInt(gameID), userName);
         state = State.LOGGEDIN;
         gameID = null;
@@ -215,6 +217,7 @@ public class ChessClient implements NotificationHandler {
         var input =  scanner.nextLine();
         if(input.equals("yes")) {
             ws.resignGame(authToken, Integer.parseInt(gameID), userName);
+            gameOver = true;
             gameID = null;
             return "You're game has been resigned";
         } else {
@@ -246,6 +249,7 @@ public class ChessClient implements NotificationHandler {
 
     public String move(String...params) throws ResponseException {
         checkState(State.INGAME);
+        checkGameStatus();
         checkTurn();
         if(params.length == 2) {
             try {
@@ -571,6 +575,12 @@ public class ChessClient implements NotificationHandler {
             }
         } else {
             throw new ResponseException(400, "No piece in found selected square");
+        }
+    }
+
+    private void checkGameStatus() throws ResponseException {
+        if(gameOver) {
+            throw new ResponseException(400, "Game is over, no more moves may be made");
         }
     }
 }

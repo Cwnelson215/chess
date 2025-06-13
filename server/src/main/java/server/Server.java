@@ -26,6 +26,7 @@ public class Server {
             Spark.put("/game", this::joinGame);
             Spark.put("/update", this::updateGame);
             Spark.delete("/db", this::clearData);
+            Spark.put("/leave", this::leaveGame);
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();
 
@@ -108,6 +109,16 @@ public class Server {
         } catch(HTTPException e) {
             res = e.createResponse(res);
             return res.body();
+        }
+    }
+
+    public Object leaveGame(Request req, Response res) {
+        try {
+            LeaveRequest leaveRequest = new Gson().fromJson(req.body(), LeaveRequest.class);
+            userService.leave(leaveRequest);
+            return new Gson().toJson(null);
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 

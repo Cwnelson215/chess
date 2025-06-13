@@ -61,11 +61,24 @@ public class ServerFacade {
         return this.makeRequest("PUT", path, joinReq, null, authToken);
     }
 
-    public Object updateGame(GameData game, String gameID) throws ResponseException {
+    public void leaveGame(String playerColor, int gameID) {
+        var path = "/leave";
+        record LeaveRequest(String playerColor, int gameID) {}
+        var leaveReq = new LeaveRequest(playerColor, gameID);
+        try {
+            this.makeRequest("PUT", path, leaveReq, null, null);
+        } catch(ResponseException e) {
+            System.out.println(e.toJson());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void updateGame(GameData game, String gameID) throws ResponseException {
         var path = "/update";
         record UpdateRequest(GameData game, String gameID) {}
         var updateReq = new UpdateRequest(game, gameID);
-        return this.makeRequest("PUT", path, updateReq, null, null);
+        this.makeRequest("PUT", path, updateReq, null, null);
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws ResponseException {
