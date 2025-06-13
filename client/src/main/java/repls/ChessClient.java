@@ -18,7 +18,7 @@ public class ChessClient implements NotificationHandler {
     private final ServerFacade server;
     private final String serverUrl;
     NotificationHandler notificationHandler;
-    private WebSocketFacade ws;
+    private WebSocketFacade ws = null;
     private String authToken = null;
     private String userName = null;
     private String gameID = null;
@@ -118,10 +118,10 @@ public class ChessClient implements NotificationHandler {
             if(params[1].length() != 1) {
                 throw new ResponseException(400, "Game id should be exactly 1 number long");
             }
+            ws = new WebSocketFacade(serverUrl, notificationHandler);
             String id = getGameId(Integer.parseInt(params[1]));
             checkState(State.LOGGEDIN);
             try {
-                ws = new WebSocketFacade(serverUrl, notificationHandler);
                 if(params[0].equals("white")) {
                     server.joinGame("WHITE", Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "WHITE");
@@ -178,9 +178,11 @@ public class ChessClient implements NotificationHandler {
             if(params[0].length() != 1) {
                 throw new ResponseException(400, "Game id should be exactly 1 number long");
             }
+            if(ws == null) {
+                ws = new WebSocketFacade(serverUrl, notificationHandler);
+            }
             String id = getGameId(Integer.parseInt(params[0]));
             try {
-                ws = new WebSocketFacade(serverUrl, notificationHandler);
                 server.joinGame("observer", Integer.parseInt(id), authToken);
                 ws.joinGame(authToken, Integer.parseInt(id), userName, "observer");
             } catch(Exception e) {
@@ -198,9 +200,8 @@ public class ChessClient implements NotificationHandler {
     public String leaveGame(String...params) throws ResponseException, IOException {
         checkParams("leave", params);
         checkState(State.INGAME);
-        state = State.LOGGEDIN;
-        ws =  new WebSocketFacade(serverUrl, notificationHandler);
         ws.leaveGame(authToken, Integer.parseInt(gameID), userName);
+        state = State.LOGGEDIN;
         gameID = null;
         return "Game exited";
     }
@@ -213,7 +214,6 @@ public class ChessClient implements NotificationHandler {
         Scanner scanner = new Scanner(System.in);
         var input =  scanner.nextLine();
         if(input.equals("yes")) {
-            ws =  new WebSocketFacade(serverUrl, notificationHandler);
             ws.resignGame(authToken, Integer.parseInt(gameID), userName);
             gameID = null;
             return "You're game has been resigned";
@@ -248,7 +248,6 @@ public class ChessClient implements NotificationHandler {
         checkState(State.INGAME);
         checkTurn();
         if(params.length == 2) {
-            ws = new WebSocketFacade(serverUrl, notificationHandler);
             try {
                 var chosenPiece = getPosition(params[0], params[1]);
                 checkPieceColor(chosenPiece);
@@ -548,6 +547,7 @@ public class ChessClient implements NotificationHandler {
 
         if(message.getType().equals("MOVE")) {
             try {
+                setGameBoard();
                 System.out.println(redrawBoard());
             } catch(Exception e) {
                 System.out.println("Something went wrong");
