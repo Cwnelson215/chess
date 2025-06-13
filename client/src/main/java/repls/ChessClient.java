@@ -226,7 +226,11 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String redrawBoard() throws ResponseException {
-        return drawBoard(new StringBuilder(), playerColor, new ArrayList<>());
+        var newBoard = drawBoard(new StringBuilder(), playerColor, new ArrayList<>());
+        if(checkForMate() != null) {
+            return newBoard + "\n" + checkForMate();
+        }
+        return newBoard;
     }
 
     public String highlight(String...params) throws ResponseException {
@@ -268,6 +272,9 @@ public class ChessClient implements NotificationHandler {
             }
         } else {
             throw new ResponseException(400, "move command must have 2 inputs");
+        }
+        if(checkForMate() != null) {
+            return checkForMate();
         }
         return redrawBoard();
     }
@@ -582,5 +589,20 @@ public class ChessClient implements NotificationHandler {
         if(gameOver) {
             throw new ResponseException(400, "Game is over, no more moves may be made");
         }
+    }
+
+    private String checkForMate() {
+        if(currentGame.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            gameOver = true;
+            return "\b".repeat(12) + "Game over, Black wins!";
+        } else if(currentGame.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            gameOver = true;
+            return "\b".repeat(12) + "Game over, White wins!";
+        }
+        if(currentGame.isInStalemate(ChessGame.TeamColor.WHITE) || currentGame.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            gameOver = true;
+            return "\b".repeat(12) + "Game Over, Stalemate!";
+        }
+        return null;
     }
 }
