@@ -122,11 +122,6 @@ public class Server {
         }
     }
 
-    public void onMessage(Session session, String message) throws Exception {
-        System.out.printf("Received: %s", message);
-        session.getRemote().sendString(message);
-    }
-
     public void stop() {
         Spark.stop();
         Spark.awaitStop();
