@@ -23,7 +23,7 @@ public class ConnectionManager {
         ArrayList<Connection> removeList = new ArrayList<>();
         for(var c : connections.values()) {
             if(c.session.isOpen()) {
-                if(c.userName.equals(excludedUserName)) {
+                if(!c.userName.equals(excludedUserName)) {
                     c.send(msg.toString());
                 }
             } else {
