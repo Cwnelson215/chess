@@ -4,13 +4,10 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.GameData;
 import model.UserData;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import server.websocket.WebSocketHandler;
 import service.*;
 import spark.*;
 
-@WebSocket
 public class Server {
     private final UserService userService = new UserService();
     private final WebSocketHandler webSocketHandler = new WebSocketHandler();
@@ -125,7 +122,6 @@ public class Server {
         }
     }
 
-    @OnWebSocketMessage
     public void onMessage(Session session, String message) throws Exception {
         System.out.printf("Received: %s", message);
         session.getRemote().sendString(message);

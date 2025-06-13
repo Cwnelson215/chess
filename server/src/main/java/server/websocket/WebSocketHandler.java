@@ -7,6 +7,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,8 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         game.add(userName, session);
         var message = String.format("%s has joined the game as %s", userName, playerColor);
-        NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                message, String.valueOf(gameID), "JOIN");
         game.broadcast(userName, notification);
     }
 
@@ -41,7 +43,8 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         game.remove(userName);
         var message = String.format("%s has left the game", userName);
-        NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                message, String.valueOf(gameID), "LEAVE");
         game.broadcast(userName, notification);
     }
 
@@ -50,7 +53,8 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         game.remove(userName);
         var message = String.format("%s has resigned", userName);
-        NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                message, String.valueOf(gameID), "RESIGN");
         game.broadcast(userName, notification);
     }
 
@@ -64,7 +68,8 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         var message = String.format("%s has moved %s%s to %s%s", userName, startRow, columns[startColumn - 1],
                 endRow, columns[endCol - 1]);
-        NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
+        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                message, String.valueOf(gameID), "MOVE");
         game.broadcast(userName, notification);
     }
 

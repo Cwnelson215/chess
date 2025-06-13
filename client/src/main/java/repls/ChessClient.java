@@ -8,12 +8,13 @@ import serverfacade.ResponseException;
 import serverfacade.ServerFacade;
 import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
+import websocket.messages.NotificationMessage;
 
 import java.io.IOException;
 import java.util.*;
 import static ui.EscapeSequences.*;
 
-public class ChessClient {
+public class ChessClient implements NotificationHandler {
     private final ServerFacade server;
     private final String serverUrl;
     NotificationHandler notificationHandler;
@@ -539,6 +540,20 @@ public class ChessClient {
             }
         }
         return null;
+    }
+
+    @Override
+    public void notify(NotificationMessage message) {
+        System.out.println(SET_BG_COLOR_RED + message);
+
+        if(message.getType().equals("MOVE")) {
+            try {
+                System.out.println(redrawBoard());
+            } catch(Exception e) {
+                System.out.println("Something went wrong");
+            }
+        }
+
     }
 
     private void checkPieceColor(ChessPosition position) throws ResponseException {
