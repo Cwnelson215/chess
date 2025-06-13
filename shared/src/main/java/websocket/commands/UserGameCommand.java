@@ -20,10 +20,10 @@ public class UserGameCommand {
     private final String userName;
     private final String playerColor;
     private final ChessMove move;
-    private final ChessGame gameState;
+    private final GameData gameState;
 
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID,
-                           String userName, String playerColor, ChessMove move, ChessGame gameState) {
+                           String userName, String playerColor, ChessMove move, GameData gameState) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
@@ -56,7 +56,7 @@ public class UserGameCommand {
 
     public String getPlayerColor() {return playerColor;}
 
-    public ChessGame getGameState() {return gameState;}
+    public GameData getGameState() {return gameState;}
 
     public ChessMove getMove() {return move;}
 

@@ -265,8 +265,8 @@ public class ChessClient implements NotificationHandler {
                 }
                 var chosenMove = confirmMove(possibleMoves);
                 currentGame.makeMove(chosenMove);
-                ws.makeMove(authToken, Integer.parseInt(gameID), userName, chosenMove, currentGame);
                 updateGame();
+                ws.makeMove(authToken, Integer.parseInt(gameID), userName, playerColor, chosenMove, getGameData());
             } catch (Exception e) {
                 throw new ResponseException(400, e.getMessage());
             }

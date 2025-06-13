@@ -2,7 +2,9 @@ package server.websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import com.google.gson.Gson;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -16,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @WebSocket
 public class WebSocketHandler {
     private final ConcurrentHashMap<Integer, ConnectionManager> games = new ConcurrentHashMap<>();
+    private boolean sendToUser = false;
     String[] columns = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
 
     @OnWebSocketMessage
@@ -59,7 +62,7 @@ public class WebSocketHandler {
         game.broadcast(userName, notification);
     }
 
-    public void move(int gameID, String userName, ChessMove move, String playerColor, ChessGame gameState) throws IOException {
+    public void move(int gameID, String userName, ChessMove move, String playerColor, GameData gameState) throws IOException {
         var startRow = move.getStartPosition().getRow();
         var startColumn = move.getStartPosition().getColumn();
         var endRow = move.getEndPosition().getRow();
@@ -69,16 +72,20 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         String message;
         if(playerColor.equals("BLACK")) {
-
             message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
                     columns[endCol - 1], endRow);
+            message = checkGameState(message, gameState);
         } else {
             message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[8 - startColumn], startRow,
                     columns[8 - endCol], endRow);
         }
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 message, String.valueOf(gameID), "MOVE");
-        game.broadcast(userName, notification);
+        if(sendToUser) {
+            game.broadcast(null, notification);
+        } else {
+            game.broadcast(userName, notification);
+        }
     }
 
     public void checkForGame(int gameID) {
@@ -90,5 +97,28 @@ public class WebSocketHandler {
     public void addGame(int gameID) {
         var game = new ConnectionManager();
         games.put(gameID, game);
+    }
+
+    public String checkGameState(String message, GameData gameState) {
+        var game = gameState.getGame();
+        if(game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            sendToUser = true;
+            return message + String.format(". %s is in checkmate!\nGame Over!", gameState.getWhiteUsername());
+        } else if(game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            sendToUser = true;
+            return message + String.format(". %s is in checkmate!\nGame Over!", gameState.getBlackUsername());
+        }
+        if(game.isInStalemate(ChessGame.TeamColor.BLACK) || game.isInStalemate(ChessGame.TeamColor.WHITE)) {
+            sendToUser = true;
+            return message + "Stalemate!\nGame Over!";
+        }
+        if(game.isInCheck(ChessGame.TeamColor.WHITE)) {
+            sendToUser = true;
+            return message + String.format(". %s is in check!", gameState.getWhiteUsername());
+        } else if(game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            sendToUser = true;
+            return message + String.format(". %s is in check!", gameState.getBlackUsername());
+        }
+        return message;
     }
 }
