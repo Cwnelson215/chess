@@ -543,7 +543,7 @@ public class ChessClient implements NotificationHandler {
 
     @Override
     public void notify(NotificationMessage message) {
-        System.out.println(SET_BG_COLOR_RED + message + RESET_BG_COLOR);
+        System.out.println(SET_TEXT_COLOR_RED + message + SET_TEXT_COLOR_BLUE);
 
         if(message.getType().equals("MOVE")) {
             try {
@@ -553,7 +553,7 @@ public class ChessClient implements NotificationHandler {
                 System.out.println("Something went wrong");
             }
         }
-        System.out.printf("[%s]>>>", state.toString());
+        System.out.printf("[%s]>>> ", state.toString());
 
     }
 

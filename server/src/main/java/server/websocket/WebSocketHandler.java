@@ -66,7 +66,7 @@ public class WebSocketHandler {
 
         checkForGame(gameID);
         var game = games.get(gameID);
-        var message = String.format("%s has moved %s\b%sto%s\b%s", userName, columns[startColumn - 1], startRow,
+        var message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
                 columns[endCol - 1], endRow);
         NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                 message, String.valueOf(gameID), "MOVE");
