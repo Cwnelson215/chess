@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import chess.ChessMove;
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
@@ -24,7 +25,7 @@ public class WebSocketHandler {
             case CONNECT -> connect(command.getGameID(), session, command.getUserName(), command.getPlayerColor());
             case LEAVE -> leave(command.getGameID(), command.getUserName());
             case RESIGN -> resign(command.getGameID(), command.getUserName());
-            case MAKE_MOVE -> move(command.getGameID(), command.getUserName(), command.getMove(), command.getPlayerColor());
+            case MAKE_MOVE -> move(command.getGameID(), command.getUserName(), command.getMove(), command.getPlayerColor(), command.getGameState());
         }
     }
 
@@ -58,7 +59,7 @@ public class WebSocketHandler {
         game.broadcast(userName, notification);
     }
 
-    public void move(int gameID, String userName, ChessMove move, String playerColor) throws IOException {
+    public void move(int gameID, String userName, ChessMove move, String playerColor, ChessGame gameState) throws IOException {
         var startRow = move.getStartPosition().getRow();
         var startColumn = move.getStartPosition().getColumn();
         var endRow = move.getEndPosition().getRow();
@@ -68,6 +69,7 @@ public class WebSocketHandler {
         var game = games.get(gameID);
         String message;
         if(playerColor.equals("BLACK")) {
+
             message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
                     columns[endCol - 1], endRow);
         } else {
