@@ -139,9 +139,9 @@ public class UserService {
                 throw new HTTPException(400, "Bad Request");
             }
             if(leaveRequest.playerColor().equals("WHITE")) {
-                game.assignPlayerColor("WHITE", null);
+                game.assignPlayerColor(null, "WHITE");
             } else {
-                game.assignPlayerColor("BLACK", null);
+                game.assignPlayerColor(null, "BLACK");
             }
             gamesDatabase.updateGame(game, String.valueOf(leaveRequest.gameID()));
         } catch (DataAccessException e) {
@@ -184,10 +184,14 @@ public class UserService {
 
     public String getPlayerColor(String userName, String gameID) throws DataAccessException {
         var game = gamesDatabase.getGame(gameID);
-        if(game.getWhiteUsername().equals(userName)) {
-            return "WHITE";
-        } else if(game.getBlackUsername().equals(userName)){
-            return "BLACK";
+        if(game.getWhiteUsername() != null && game.getBlackUsername() != null) {
+            if (game.getWhiteUsername().equals(userName)) {
+                return "WHITE";
+            } else if (game.getBlackUsername().equals(userName)) {
+                return "BLACK";
+            } else {
+                return "observer";
+            }
         } else {
             return "observer";
         }

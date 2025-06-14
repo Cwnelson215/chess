@@ -255,7 +255,6 @@ public class ChessClient implements NotificationHandler {
     public String move(String...params) throws ResponseException {
         checkState(State.INGAME);
         checkGameStatus();
-        checkTurn();
         if(params.length == 2) {
             try {
                 var chosenPiece = getPosition(params[0], params[1]);
@@ -442,7 +441,7 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    private void checkParams(String s, String...params) throws ResponseException{
+    private void checkParams(String s, String...params) throws ResponseException {
         if(params.length > 0) {
             throw new ResponseException(400, String.format("No inputs required for %s command", s));
         }
@@ -500,17 +499,6 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    private void checkTurn() throws ResponseException {
-        var currentTurn = currentGame.getTeamTurn();
-        if(currentTurn.equals(ChessGame.TeamColor.WHITE)) {
-            if(!playerColor.equals("white")) {
-                throw new ResponseException(400, "It's not your turn");
-            }
-        } else if(!playerColor.equals("black")) {
-            throw new ResponseException(400, "It's not your turn");
-        }
-    }
-
     private ChessMove confirmMove(Collection<ChessMove> moves) {
         ArrayList<ChessMove> possibleMoves = (ArrayList<ChessMove>) moves;
         System.out.println("Please choose which move you would like to make");
@@ -551,8 +539,9 @@ public class ChessClient implements NotificationHandler {
             System.out.print("\n" + redrawBoard());
             System.out.print("[INGAME]>>> ");
         } else {
-            System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message.toString() + SET_TEXT_COLOR_BLUE);
-            System.out.print("[INGAME]>>> ");
+            checkMessage(message);
+            System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message + SET_TEXT_COLOR_BLUE);
+            System.out.printf("[%s]>>> ", state);
         }
     }
 
@@ -576,6 +565,13 @@ public class ChessClient implements NotificationHandler {
     private void checkGameStatus() throws ResponseException {
         if(gameOver) {
             throw new ResponseException(400, "Game is over, no more moves may be made");
+        }
+    }
+
+    private void checkMessage(ServerMessage msg) {
+        String message = String.valueOf(msg);
+        if(message.contains("resign")) {
+            gameOver = true;
         }
     }
 

@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
     private final ConcurrentHashMap<String, Connection> connections = new ConcurrentHashMap<>();
+    private boolean resigned = false;
 
     public void add(String userName, Session session) {
         var connection = new Connection(userName, session);
@@ -35,6 +36,14 @@ public class ConnectionManager {
         for(var c : removeList) {
             connections.remove(c.userName);
         }
+    }
+
+    public void resign() {
+        this.resigned = true;
+    }
+
+    public boolean checkResign() {
+        return resigned;
     }
 
     public void notify(String userName, ServerMessage msg) throws IOException {
