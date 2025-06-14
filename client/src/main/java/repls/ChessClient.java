@@ -139,7 +139,7 @@ public class ChessClient implements NotificationHandler {
                     throw new ResponseException(400, "incorrect color input try again");
                 }
             } catch(ResponseException e) {
-                return "Your requested color is already taken";
+                return e.getMessage();
             } catch(IOException e) {
                 return "Something went wrong";
             }
@@ -204,8 +204,7 @@ public class ChessClient implements NotificationHandler {
     public String leaveGame(String...params) throws ResponseException, IOException {
         check.params("leave", params);
         check.state(State.INGAME, state);
-        server.leaveGame(playerColor, Integer.parseInt(gameID));
-        ws.leaveGame(authToken, Integer.parseInt(gameID), userName);
+        ws.leaveGame(authToken, Integer.parseInt(gameID));
         state = State.LOGGEDIN;
         gameID = null;
         return "Game exited";
@@ -383,9 +382,6 @@ public class ChessClient implements NotificationHandler {
     private ChessPosition getPosition(String c, String r) {
         int col = convertColumn(c);
         int row = Integer.parseInt(r);
-        if(playerColor.equals("white")) {
-            return  new ChessPosition(row, 9 - col);
-        }
         return new ChessPosition(row, col);
     }
 

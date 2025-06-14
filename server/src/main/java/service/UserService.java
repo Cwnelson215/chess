@@ -140,7 +140,7 @@ public class UserService {
             }
             if(leaveRequest.playerColor().equals("WHITE")) {
                 game.assignPlayerColor(null, "WHITE");
-            } else {
+            } else if(leaveRequest.playerColor().equals("BLACK")){
                 game.assignPlayerColor(null, "BLACK");
             }
             gamesDatabase.updateGame(game, String.valueOf(leaveRequest.gameID()));
