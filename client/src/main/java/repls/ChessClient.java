@@ -9,6 +9,7 @@ import serverfacade.ResponseException;
 import serverfacade.ServerFacade;
 import serverfacade.websocket.NotificationHandler;
 import serverfacade.websocket.WebSocketFacade;
+import ui.EscapeSequences;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
@@ -17,6 +18,9 @@ import java.util.*;
 import static ui.EscapeSequences.*;
 
 public class ChessClient implements NotificationHandler {
+    private final EscapeSequences es = new EscapeSequences();
+    private final BooleanMethods booleans = new BooleanMethods();
+    private final CheckMethods check = new CheckMethods();
     private final ServerFacade server;
     private final String serverUrl;
     NotificationHandler notificationHandler;
@@ -95,8 +99,8 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String logout(String...params) throws ResponseException {
-        checkParams("logout", params);
-        checkState(State.LOGGEDIN);
+        check.params("logout", params);
+        check.state(State.LOGGEDIN, state);
         server.logout(authToken);
         authToken = null;
         userName = null;
@@ -108,14 +112,14 @@ public class ChessClient implements NotificationHandler {
         if(params.length > 1) {
             throw new ResponseException(400, "Too many arguments given for create command; only a name is required");
         }
-        checkState(State.LOGGEDIN);
+        check.state(State.LOGGEDIN, state);
         server.createGame(params[0], authToken);
         return "Game created! Don't forget to join!";
     }
 
     public String join(String...params) throws ResponseException {
         if(params.length == 2) {
-            if(!isInt(params[1])) {
+            if(!booleans.isInt(params[1])) {
                 throw new ResponseException(400, "Game id should contain only integers");
             }
             if(params[1].length() != 1) {
@@ -123,7 +127,7 @@ public class ChessClient implements NotificationHandler {
             }
             ws = new WebSocketFacade(serverUrl, notificationHandler);
             String id = getGameId(Integer.parseInt(params[1]));
-            checkState(State.LOGGEDIN);
+            check.state(State.LOGGEDIN, state);
             try {
                 if(params[0].equals("white")) {
                     server.joinGame("WHITE", Integer.parseInt(id), authToken);
@@ -142,15 +146,14 @@ public class ChessClient implements NotificationHandler {
             state = State.INGAME;
             gameID = id;
             playerColor = params[0];
-            setGameBoard();
             return "Game Joined!\n";
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
 
     public String list(String...params) throws ResponseException {
-        checkParams("list", params);
-        checkState(State.LOGGEDIN);
+        check.params("list", params);
+        check.state(State.LOGGEDIN, state);
         var list = server.listGames(authToken);
         if(list.isEmpty()) {
             return "No games currently being played";
@@ -174,8 +177,8 @@ public class ChessClient implements NotificationHandler {
 
     public String observe(String...params) throws ResponseException {
         if(params.length == 1) {
-            checkState(State.LOGGEDIN);
-            if(!isInt(params[0])) {
+            check.state(State.LOGGEDIN, state);
+            if(!booleans.isInt(params[0])) {
                 throw new ResponseException(400, "Game id should contain only integers");
             }
             if(params[0].length() != 1) {
@@ -193,15 +196,14 @@ public class ChessClient implements NotificationHandler {
             state = State.INGAME;
             playerColor = "observer";
             gameID = id;
-            setGameBoard();
             return "Game Joined!\n";
         }
         throw new ResponseException(400, "only the game ID is needed");
     }
 
     public String leaveGame(String...params) throws ResponseException, IOException {
-        checkParams("leave", params);
-        checkState(State.INGAME);
+        check.params("leave", params);
+        check.state(State.INGAME, state);
         server.leaveGame(playerColor, Integer.parseInt(gameID));
         ws.leaveGame(authToken, Integer.parseInt(gameID), userName);
         state = State.LOGGEDIN;
@@ -210,8 +212,8 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String resignGame(String...params) throws ResponseException, IOException {
-        checkParams("resign", params);
-        checkState(State.INGAME);
+        check.params("resign", params);
+        check.state(State.INGAME, state);
         System.out.println("Would you like to resign the match?");
         System.out.printf("[%s]>>> ", state.toString());
         Scanner scanner = new Scanner(System.in);
@@ -235,13 +237,13 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String highlight(String...params) throws ResponseException {
-        checkState(State.INGAME);
+        check.state(State.INGAME, state);
         ArrayList<ChessPosition> highlightedPositions;
         if(params.length != 2) {
             throw new ResponseException(400, "only 2 arguments are allowed");
         }
-        if(isLetter(params[0]) && isInt(params[1])) {
-            if(!checkRange(params[0]) && checkRange(params[1])) {
+        if(booleans.isLetter(params[0]) && booleans.isInt(params[1])) {
+            if(!booleans.checkRange(params[0]) && booleans.checkRange(params[1])) {
                 throw new ResponseException(400, "row or column input out of range");
             }
             ChessPosition chosenPosition = getPosition(params[0], params[1]);
@@ -253,19 +255,19 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String move(String...params) throws ResponseException {
-        checkState(State.INGAME);
-        checkGameStatus();
+        check.state(State.INGAME, state);
+        check.gameStatus(gameOver);
         if(params.length == 2) {
             try {
                 var chosenPiece = getPosition(params[0], params[1]);
-                checkPieceColor(chosenPiece);
+                check.pieceColor(chosenPiece, currentGame, playerColor);
                 Collection<ChessMove> possibleMoves = currentGame.validMoves(chosenPiece);
                 if(possibleMoves.isEmpty()) {
                     throw new ResponseException(400, "Unable to move chosen piece");
                 }
                 var chosenMove = confirmMove(possibleMoves);
                 currentGame.makeMove(chosenMove);
-                ws.makeMove(authToken, Integer.parseInt(gameID), userName, playerColor, chosenMove, getGameData());
+                ws.makeMove(authToken, Integer.parseInt(gameID), userName, playerColor, chosenMove);
             } catch (Exception e) {
                 throw new ResponseException(400, e.getMessage());
             }
@@ -310,14 +312,8 @@ public class ChessClient implements NotificationHandler {
         return state.toString();
     }
 
-    private void checkState(State expectedState) throws ResponseException {
-        if(expectedState != state) {
-            throw new  ResponseException(400, String.format("Error: must be %s to perform that action", expectedState.toString()));
-        }
-    }
-
     private String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
-        checkState(State.INGAME);
+        check.state(State.INGAME, state);
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
         String[] highlightColors = {SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN};
         ChessPiece[][] board = currentGame.getBoard().getBoard();
@@ -339,7 +335,7 @@ public class ChessClient implements NotificationHandler {
                     } else {
                         background = backgroundColors[(i + j) % 2];
                     }
-                    String sequence = getEscapeSequences(board[rowCounter][columnCounter]);
+                    String sequence = es.getEscapeSequences(board[rowCounter][columnCounter]);
                     sb.append(background).append(sequence);
                     columnCounter--;
                 }
@@ -365,7 +361,7 @@ public class ChessClient implements NotificationHandler {
                     } else {
                         background = backgroundColors[(i + j) % 2];
                     }
-                    var sequence = getEscapeSequences(board[i][j]);
+                    var sequence = es.getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
                 }
                 sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
@@ -377,74 +373,6 @@ public class ChessClient implements NotificationHandler {
             sb.append(EMPTY).append("\n").append(RESET_BG_COLOR);
         }
         return sb.toString();
-    }
-
-    private String getEscapeSequences(ChessPiece piece) {
-        if(piece == null) {
-            return EMPTY;
-        }
-        var type = piece.getPieceType();
-        if(piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            return switch(type) {
-                case KING -> WHITE_KING;
-                case QUEEN -> WHITE_QUEEN;
-                case BISHOP -> WHITE_BISHOP;
-                case KNIGHT -> WHITE_KNIGHT;
-                case ROOK -> WHITE_ROOK;
-                case PAWN -> WHITE_PAWN;
-            };
-        } else {
-            return switch(type) {
-                case KING -> BLACK_KING;
-                case QUEEN -> BLACK_QUEEN;
-                case BISHOP -> BLACK_BISHOP;
-                case KNIGHT -> BLACK_KNIGHT;
-                case ROOK -> BLACK_ROOK;
-                case PAWN -> BLACK_PAWN;
-            };
-        }
-    }
-
-    private boolean checkRange(String a) {
-        if(isLetter(a)) {
-            char c = a.charAt(0);
-            if (c >= 'A' && c <= 'H') {
-                return true;
-            } else {
-                return c >= 'a' && c <= 'h';
-            }
-        } else {
-            return Integer.parseInt(a) >= 1 && Integer.parseInt(a) <= 8;
-        }
-    }
-
-    private boolean isLetter(String s) {
-        char ch = s.charAt(0);
-        return ch >= 'A' && ch <= 'z';
-    }
-
-    private boolean isInt(String s) {
-        try {
-            Integer.parseInt(s);
-            return true;
-        } catch(Exception e) {
-            return false;
-        }
-    }
-
-    private void setGameBoard() throws ResponseException {
-        var list = server.listGames(authToken);
-        for(GameData game : list) {
-            if(Objects.equals(game.getGameID(), gameID)) {
-                currentGame = game.getGame();
-            }
-        }
-    }
-
-    private void checkParams(String s, String...params) throws ResponseException {
-        if(params.length > 0) {
-            throw new ResponseException(400, String.format("No inputs required for %s command", s));
-        }
     }
 
     private String getGameId(int gameNumber) throws ResponseException {
@@ -522,16 +450,6 @@ public class ChessClient implements NotificationHandler {
         }
     }
 
-    private GameData getGameData() throws ResponseException {
-        var list = server.listGames(authToken);
-        for(GameData game : list) {
-            if(game.getGameID().equals(gameID)) {
-                return game;
-            }
-        }
-        return null;
-    }
-
     @Override
     public void notify(ServerMessage message) throws ResponseException {
         if(message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
@@ -542,29 +460,6 @@ public class ChessClient implements NotificationHandler {
             checkMessage(message);
             System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message + SET_TEXT_COLOR_BLUE);
             System.out.printf("[%s]>>> ", state);
-        }
-    }
-
-    private void checkPieceColor(ChessPosition position) throws ResponseException {
-        ChessPiece piece = currentGame.getBoard().getPiece(position);
-        if(piece != null) {
-            if(piece.getTeamColor().equals(ChessGame.TeamColor.WHITE)) {
-                if(!playerColor.equals("white")) {
-                    throw new ResponseException(400, "Selected piece is not your color");
-                }
-            } else {
-                if(!playerColor.equals("black")) {
-                    throw new ResponseException(400, "Selected piece is not your color");
-                }
-            }
-        } else {
-            throw new ResponseException(400, "No piece in found selected square");
-        }
-    }
-
-    private void checkGameStatus() throws ResponseException {
-        if(gameOver) {
-            throw new ResponseException(400, "Game is over, no more moves may be made");
         }
     }
 

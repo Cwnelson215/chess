@@ -67,25 +67,22 @@ public class WebSocketFacade extends Endpoint {
 
     public void joinGame(String authToken, int gameID, String userName, String playerColor) throws IOException {
         var command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID,
-                userName, playerColor, null, null);
+                playerColor, null);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 
     public void leaveGame(String authToken, int gameID, String userName) throws IOException {
-        var command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken,gameID,
-                userName, null, null, null);
+        var command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken,gameID, null, null);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 
     public void resignGame(String authToken, int gameID, String userName) throws IOException {
-        var command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID,
-                userName, null, null, null);
+        var command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID, null, null);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 
-    public void makeMove(String authToken, int gameID, String userName, String playerColor, ChessMove move, GameData gameState) throws IOException {
-        var command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID,
-                userName, playerColor, move, gameState);
+    public void makeMove(String authToken, int gameID, String userName, String playerColor, ChessMove move) throws IOException {
+        var command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, playerColor, move);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 
