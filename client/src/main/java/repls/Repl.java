@@ -1,5 +1,6 @@
 package repls;
 
+import serverfacade.ResponseException;
 import serverfacade.websocket.NotificationHandler;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
@@ -41,7 +42,7 @@ public class Repl implements NotificationHandler {
 
     }
 
-    public void notify(ServerMessage message) {
+    public void notify(ServerMessage message) throws ResponseException {
         client.notify(message);
     }
 }

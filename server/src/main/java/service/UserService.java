@@ -175,10 +175,21 @@ public class UserService {
     }
 
     public String getUserName(String authToken) throws DataAccessException {
-        return authDatabase.getUsername(authToken);
+        if(authDatabase.getUsername(authToken) != null) {
+            return authDatabase.getUsername(authToken);
+        } else {
+            throw new DataAccessException("Bad authToken");
+        }
     }
 
-//    public String getPlayerColor(String userName) {
-//        return gamesDatabase.
-//    }
+    public String getPlayerColor(String userName, String gameID) throws DataAccessException {
+        var game = gamesDatabase.getGame(gameID);
+        if(game.getWhiteUsername().equals(userName)) {
+            return "WHITE";
+        } else if(game.getBlackUsername().equals(userName)){
+            return "BLACK";
+        } else {
+            return "observer";
+        }
+    }
 }

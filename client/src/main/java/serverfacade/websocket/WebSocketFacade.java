@@ -6,7 +6,10 @@ import com.google.gson.Gson;
 import model.GameData;
 import serverfacade.ResponseException;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadMessage;
 import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -28,8 +31,29 @@ public class WebSocketFacade extends Endpoint {
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    NotificationMessage notification = new Gson().fromJson(message, NotificationMessage.class);
-                    notificationHandler.notify(notification);
+                    ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
+                    if(notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
+                        LoadMessage loadMessage = new Gson().fromJson(message, LoadMessage.class);
+                        try {
+                            notificationHandler.notify(loadMessage);
+                        } catch (ResponseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else if(notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+                        ErrorMessage errorMessage = new Gson().fromJson(message, ErrorMessage.class);
+                        try {
+                            notificationHandler.notify(errorMessage);
+                        } catch (ResponseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        notification = new Gson().fromJson(message, NotificationMessage.class);
+                        try {
+                            notificationHandler.notify(notification);
+                        } catch (ResponseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             });
         } catch(Exception e) {

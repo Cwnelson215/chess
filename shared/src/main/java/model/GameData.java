@@ -1,6 +1,8 @@
 package model;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 
 import java.util.Objects;
 import java.util.Random;
@@ -36,6 +38,10 @@ public class GameData {
         } else {
             return blackUsername;
         }
+    }
+
+    public void makeMove(ChessMove move) throws InvalidMoveException {
+        game.makeMove(move);
     }
 
     public String getGameName() {return gameName;}

@@ -126,10 +126,10 @@ public class ChessClient implements NotificationHandler {
             checkState(State.LOGGEDIN);
             try {
                 if(params[0].equals("white")) {
-                    server.joinGame(params[0], Integer.parseInt(id), authToken);
+                    server.joinGame("WHITE", Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "WHITE");
                 } else if(params[0].equals("black")) {
-                    server.joinGame(params[0], Integer.parseInt(id), authToken);
+                    server.joinGame("BLACK", Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "BLACK");
                 } else {
                     throw new ResponseException(400, "incorrect color input try again");
@@ -140,10 +140,10 @@ public class ChessClient implements NotificationHandler {
                 return "Something went wrong";
             }
             state = State.INGAME;
-            StringBuilder sb = new StringBuilder(String.format("You've joined as the %s team!\n", params[0]));
             gameID = id;
             playerColor = params[0];
-            return drawBoard(sb, params[0], new ArrayList<>());
+            setGameBoard();
+            return "Game Joined!\n";
         }
         throw new ResponseException(400, "two arguments expected, playerColor and gameID");
     }
@@ -193,8 +193,8 @@ public class ChessClient implements NotificationHandler {
             state = State.INGAME;
             playerColor = "observer";
             gameID = id;
-            StringBuilder sb = new StringBuilder("Observing game\n");
-            return drawBoard(sb, "observer", new ArrayList<>());
+            setGameBoard();
+            return "Game Joined!\n";
         }
         throw new ResponseException(400, "only the game ID is needed");
     }
@@ -276,7 +276,7 @@ public class ChessClient implements NotificationHandler {
         if(checkForMate() != null) {
             return checkForMate();
         }
-        return redrawBoard();
+        return "Move Made!";
     }
 
     public String help() {
@@ -319,7 +319,6 @@ public class ChessClient implements NotificationHandler {
 
     private String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
         checkState(State.INGAME);
-        setGameBoard();
         String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
         String[] highlightColors = {SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN};
         ChessPiece[][] board = currentGame.getBoard().getBoard();
@@ -546,11 +545,13 @@ public class ChessClient implements NotificationHandler {
     }
 
     @Override
-    public void notify(ServerMessage message) {
+    public void notify(ServerMessage message) throws ResponseException {
         if(message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
             currentGame = new Gson().fromJson(String.valueOf(message), GameData.class).getGame();
+            System.out.print("\n" + redrawBoard());
+            System.out.print("[INGAME]>>> ");
         } else {
-            System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message + SET_TEXT_COLOR_BLUE);
+            System.out.println(SET_TEXT_COLOR_RED + "\b".repeat(12) + message.toString() + SET_TEXT_COLOR_BLUE);
             System.out.print("[INGAME]>>> ");
         }
     }

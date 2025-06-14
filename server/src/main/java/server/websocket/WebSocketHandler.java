@@ -3,6 +3,7 @@ package server.websocket;
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPiece;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import model.GameData;
@@ -22,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @WebSocket
 public class WebSocketHandler {
-    private UserService userService;
+    private final UserService userService;
 
     public WebSocketHandler(UserService userService) {
         this.userService = userService;
@@ -39,18 +40,22 @@ public class WebSocketHandler {
             case CONNECT -> connect(command.getGameID(), session, command.getAuthToken());
             case LEAVE -> leave(command.getGameID(), command.getUserName());
             case RESIGN -> resign(command.getGameID(), command.getUserName());
-            case MAKE_MOVE -> move(command.getGameID(), command.getUserName(), command.getMove(), command.getPlayerColor(), command.getGameState());
+            case MAKE_MOVE -> move(command.getGameID(), command.getMove());
         }
     }
 
     public void connect(int gameID, Session session,String authToken) throws IOException, DataAccessException {
         checkForGame(gameID);
         var game = games.get(gameID);
+        String userName = "";
         try {
-            var userName = userService.getUserName(authToken);
-            userService.join(new JoinRequest(playerColor, gameID), authToken);
+            userName = userService.getUserName(authToken);
             game.add(userName, session);
-            var message = String.format("%s has joined the game", userName);
+            var playerColor = userService.getPlayerColor(userName, String.valueOf(gameID));
+            var message = String.format("%s has joined the game as an observer", userName);
+            if(!playerColor.equals("observer")) {
+                message = String.format("%s has joined the game as the %s player", userName, playerColor);
+            }
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                     message, String.valueOf(gameID), "LEAVE");
             LoadMessage loadMessage = new LoadMessage(ServerMessage.ServerMessageType.LOAD_GAME,
@@ -58,8 +63,9 @@ public class WebSocketHandler {
             game.broadcast(userName, notification);
             game.notify(userName, loadMessage);
         } catch(Exception e) {
-            game.notify(userName, new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
-                    "Error: " + e.getMessage()));
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: " + e.getMessage());
+            session.getRemote().sendString(new Gson().toJson(error));
         }
     }
 
@@ -83,29 +89,37 @@ public class WebSocketHandler {
         game.broadcast(userName, notification);
     }
 
-    public void move(int gameID, String userName, ChessMove move, String playerColor, GameData gameState) throws IOException {
+    public void move(int gameID, ChessMove move) throws IOException, DataAccessException {
         var startRow = move.getStartPosition().getRow();
         var startColumn = move.getStartPosition().getColumn();
         var endRow = move.getEndPosition().getRow();
         var endCol = move.getEndPosition().getColumn();
-
         checkForGame(gameID);
         var game = games.get(gameID);
-        String message;
-        if(playerColor.equals("BLACK")) {
-            message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
-                    columns[endCol - 1], endRow);
-            message = checkGameState(message, gameState);
-        } else {
-            message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[8 - startColumn], startRow,
-                    columns[8 - endCol], endRow);
-        }
-        NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                message, String.valueOf(gameID), "MOVE");
-        if(sendToUser) {
-            game.broadcast(null, notification);
-        } else {
+        GameData gameState = userService.getGame(gameID);
+        String userName = getUserName(gameState);
+        try {
+            String playerColor = userService.getPlayerColor(userName, String.valueOf(gameID));
+            gameState.makeMove(move);
+            String message;
+            if (playerColor.equals("BLACK")) {
+                message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
+                        columns[endCol - 1], endRow);
+                message = checkGameState(message, gameState);
+            } else {
+                message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[8 - startColumn], startRow,
+                        columns[8 - endCol], endRow);
+            }
+            NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                    message, String.valueOf(gameID), "MOVE");
+            LoadMessage load = new LoadMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                    new Gson().toJson(gameState));
+            game.broadcast(null, load);
             game.broadcast(userName, notification);
+        } catch (InvalidMoveException e) {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: " + e.getMessage());
+            game.notify(userName, error);
         }
     }
 
@@ -141,5 +155,13 @@ public class WebSocketHandler {
             return message + String.format(". %s is in check!", gameState.getBlackUsername());
         }
         return message;
+    }
+
+    private String getUserName(GameData game) {
+        if(game.getGame().getTeamTurn().equals(ChessGame.TeamColor.WHITE)) {
+            return game.getWhiteUsername();
+        } else {
+            return game.getBlackUsername();
+        }
     }
 }

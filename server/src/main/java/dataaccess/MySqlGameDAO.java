@@ -46,14 +46,6 @@ public class MySqlGameDAO implements GamesDAO{
         return null;
     }
 
-//    public String getPlayerColor(String gameID, String userName) throws DataAccessException {
-//        if(gameID == null) {
-//            throw new DataAccessException("null input");
-//        }
-//        try {
-//
-//        }
-//    }
 
     public GameData createGame(String gameName) throws DataAccessException {
         if(gameName == null) {
