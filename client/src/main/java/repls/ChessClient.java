@@ -118,6 +118,9 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String join(String...params) throws ResponseException {
+        if(gameOver) {
+            gameOver = false;
+        }
         if(params.length == 2) {
             if(!booleans.isInt(params[1])) {
                 throw new ResponseException(400, "Game id should contain only integers");
@@ -129,6 +132,7 @@ public class ChessClient implements NotificationHandler {
             String id = getGameId(Integer.parseInt(params[1]));
             check.state(State.LOGGEDIN, state);
             try {
+                check.colorAvailable(server, params[1], params[0], authToken);
                 if(params[0].equals("white")) {
                     server.joinGame("WHITE", Integer.parseInt(id), authToken);
                     ws.joinGame(authToken, Integer.parseInt(id), userName, "WHITE");
@@ -246,6 +250,9 @@ public class ChessClient implements NotificationHandler {
                 throw new ResponseException(400, "row or column input out of range");
             }
             ChessPosition chosenPosition = getPosition(params[0], params[1]);
+            if(currentGame.getBoard().getPiece(chosenPosition) == null) {
+                throw new ResponseException(400, "Chosen square is empty");
+            }
             highlightedPositions = listMoves(chosenPosition);
         } else {
             throw new ResponseException(400, "first input must be a letter and second must be a number");
@@ -313,8 +320,8 @@ public class ChessClient implements NotificationHandler {
 
     private String drawBoard(StringBuilder sb, String s, ArrayList<ChessPosition> highlightPositions) throws ResponseException {
         check.state(State.INGAME, state);
-        String[] backgroundColors = {SET_BG_COLOR_WHITE, SET_BG_COLOR_BLACK};
-        String[] highlightColors = {SET_BG_COLOR_GREEN, SET_BG_COLOR_DARK_GREEN};
+        String[] backgroundColors = {SET_BG_COLOR_BLACK, SET_BG_COLOR_WHITE};
+        String[] highlightColors = {SET_BG_COLOR_DARK_GREEN, SET_BG_COLOR_GREEN};
         ChessPiece[][] board = currentGame.getBoard().getBoard();
         String background;
         if(Objects.equals(s, "white") || Objects.equals(s, "observer")) {
@@ -323,23 +330,19 @@ public class ChessClient implements NotificationHandler {
                 sb.append(col);
             }
             sb.append(EMPTY).append("\n");
-            int rowCounter = 7;
-            for (int i = 1; i < 9; i++) {
-                sb.append(rows[rowCounter]);
-                int columnCounter = 7;
-                for (int j = 1; j < 9; j++) {
-                    ChessPosition position = new ChessPosition(9 - i, j);
+            for (int i = 7; i >= 0; i--) {
+                sb.append(rows[i]);
+                for (int j = 0; j < 8; j++) {
+                    ChessPosition position = new ChessPosition(i + 1, j + 1);
                     if(highlightPositions.contains(position)) {
                         background = highlightColors[(i + j) % 2];
                     } else {
                         background = backgroundColors[(i + j) % 2];
                     }
-                    String sequence = es.getEscapeSequences(board[rowCounter][columnCounter]);
+                    String sequence = es.getEscapeSequences(board[i][j]);
                     sb.append(background).append(sequence);
-                    columnCounter--;
                 }
-                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[rowCounter]).append("\n");
-                rowCounter--;
+                sb.append(SET_BG_COLOR_LIGHT_GREY).append(rows[i]).append("\n");
             }
             sb.append(SET_BG_COLOR_LIGHT_GREY).append(EMPTY);
             for(String col : columns) {
@@ -354,7 +357,7 @@ public class ChessClient implements NotificationHandler {
             sb.append(EMPTY).append("\n");
             for(int i = 0; i < 8; i++) {
                 sb.append(rows[i]);
-                for(int j = 0; j < 8; j++) {
+                for(int j = 7; j >= 0; j--) {
                     if(highlightPositions.contains(new ChessPosition(i + 1, j + 1))) {
                         background = highlightColors[(i + j) % 2];
                     } else {
@@ -396,31 +399,17 @@ public class ChessClient implements NotificationHandler {
     }
 
     private int convertColumn(String col) {
-        if(Objects.equals(playerColor, "black")) {
-            return switch (col) {
-                case "h" -> 1;
-                case "g" -> 2;
-                case "f" -> 3;
-                case "e" -> 4;
-                case "d" -> 5;
-                case "c" -> 6;
-                case "b" -> 7;
-                case "a" -> 8;
-                default -> throw new IllegalStateException("Unexpected value: " + col);
-            };
-        } else {
-            return switch (col) {
-                case "a" -> 1;
-                case "b" -> 2;
-                case "c" -> 3;
-                case "d" -> 4;
-                case "e" -> 5;
-                case "f" -> 6;
-                case "g" -> 7;
-                case "h" -> 8;
-                default -> throw new IllegalStateException("Unexpected value: " + col);
-            };
-        }
+        return switch (col) {
+            case "a" -> 1;
+            case "b" -> 2;
+            case "c" -> 3;
+            case "d" -> 4;
+            case "e" -> 5;
+            case "f" -> 6;
+            case "g" -> 7;
+            case "h" -> 8;
+            default -> throw new IllegalStateException("Unexpected value: " + col);
+        };
     }
 
     private ChessMove confirmMove(Collection<ChessMove> moves) {
@@ -428,8 +417,14 @@ public class ChessClient implements NotificationHandler {
         System.out.println("Please choose which move you would like to make");
         int i = 1;
         for(ChessMove move : moves) {
-            String s = i + ". " +
-                    columns[8 - move.getEndPosition().getColumn()] + "\b" + move.getEndPosition().getRow();
+            String s = "";
+            if(move.getPromotionPiece() != null) {
+                s = i + ". " + columns[move.getEndPosition().getColumn() - 1] + "\b" + move.getEndPosition().getRow() +
+                        "(promotion to " + move.getPromotionPiece().toString() + ")";
+            } else {
+                s = i + ". " +
+                        columns[move.getEndPosition().getColumn() - 1] + "\b" + move.getEndPosition().getRow();
+            }
             System.out.println(s);
             i++;
         }
@@ -437,7 +432,7 @@ public class ChessClient implements NotificationHandler {
         while(true) {
             Scanner scanner = new Scanner(System.in);
             var input = Integer.parseInt(scanner.nextLine());
-            if (input > possibleMoves.size()) {
+            if (input > possibleMoves.size() || input < 1) {
                 System.out.printf(SET_TEXT_COLOR_GREEN + "%s was not an option, please try again.%n" + SET_TEXT_COLOR_BLUE, input);
                 System.out.print("[INGAME]>>> ");
                 continue;

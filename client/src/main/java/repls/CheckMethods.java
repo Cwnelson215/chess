@@ -3,7 +3,10 @@ package repls;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import com.google.gson.Gson;
+import model.GameData;
 import serverfacade.ResponseException;
+import serverfacade.ServerFacade;
 
 public class CheckMethods {
     public void params(String s, String...params) throws ResponseException {
@@ -38,6 +41,18 @@ public class CheckMethods {
     public void gameStatus(boolean gameOver) throws ResponseException {
         if(gameOver) {
             throw new ResponseException(400, "Game is over, no more moves may be made");
+        }
+    }
+
+    public void colorAvailable(ServerFacade server, String gameID, String playerColor, String authToken) throws ResponseException {
+        var list = server.listGames(authToken);
+        GameData game = list.get(Integer.parseInt(gameID) - 1);
+        if(playerColor.equals("white")) {
+            if(game.getWhiteUsername() != null) {
+                throw new ResponseException(400, "Selected color is already taken");
+            }
+        } else if(game.getBlackUsername() != null) {
+            throw new ResponseException(400, "Selected color is already taken");
         }
     }
 }

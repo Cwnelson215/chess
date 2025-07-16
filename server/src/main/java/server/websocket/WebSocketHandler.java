@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @WebSocket
 public class WebSocketHandler {
     private boolean gameOver = false;
+    private boolean inCheck = false;
     private final UserService userService;
 
     public WebSocketHandler(UserService userService) {
@@ -44,7 +45,7 @@ public class WebSocketHandler {
         }
     }
 
-    public void connect(int gameID, Session session,String authToken) throws IOException, DataAccessException {
+    public void connect(int gameID, Session session,String authToken) throws IOException {
         checkForGame(gameID);
         var game = games.get(gameID);
         if(gameOver) {
@@ -116,6 +117,7 @@ public class WebSocketHandler {
         checkForGame(gameID);
         var game = games.get(gameID);
         GameData gameState = userService.getGame(gameID);
+        inCheck = false;
         try {
             checkGameState(null, gameState);
             String userName = userService.getUserName(authToken);
@@ -123,13 +125,15 @@ public class WebSocketHandler {
             checkTurn(gameState, playerColor);
             gameState.makeMove(move);
             String message;
-            if (playerColor.equals("BLACK")) {
-                message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[startColumn - 1], startRow,
-                        columns[endCol - 1], endRow);
+            if (playerColor.equals("WHITE")) {
+                String startPosition = columns[startColumn - 1] + "\b" + startRow;
+                String endPosition = columns[endCol - 1] + "\b" + endRow;
+                message = String.format("%s has moved%s to%s", userName, startPosition, endPosition);
                 message = checkGameState(message, gameState);
             } else {
-                message = String.format("%s has moved%s\b%s to%s\b%s", userName, columns[8 - startColumn], startRow,
-                        columns[8 - endCol], endRow);
+                String startPosition = columns[startColumn - 1] + "\b" + startRow;
+                String endPosition = columns[endCol - 1] + "\b" + endRow;
+                message = String.format("%s has moved%s to%s", userName, startPosition, endPosition);
                 message = checkGameState(message, gameState);
             }
             NotificationMessage notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
@@ -137,7 +141,11 @@ public class WebSocketHandler {
             LoadMessage load = new LoadMessage(ServerMessage.ServerMessageType.LOAD_GAME,
                     new Gson().toJson(gameState));
             game.broadcast(null, load);
-            game.broadcast(userName, notification);
+            if(gameOver || inCheck) {
+                game.broadcast(null, notification);
+            } else {
+                game.broadcast(userName, notification);
+            }
             userService.updateGame(new UpdateRequest(gameState, String.valueOf(gameID)));
         } catch (Exception e) {
             sendError(e, session);
@@ -174,6 +182,7 @@ public class WebSocketHandler {
         if(game.isInCheck(ChessGame.TeamColor.WHITE)) {
             return message + String.format(". %s is in check!", gameState.getWhiteUsername());
         } else if(game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            inCheck = true;
             return message + String.format(". %s is in check!", gameState.getBlackUsername());
         }
         return message;
